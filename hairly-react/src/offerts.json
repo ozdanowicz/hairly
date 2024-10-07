@@ -1,0 +1,86 @@
+[
+  {
+    "id": "1",
+    "title": "Luxury Hair Salon",
+    "description": "Our luxury hair salon offers a range of services from precision haircuts to personalized color treatments, all designed to make you look and feel your best.",
+    "location": "Boston, MA",
+    "salary": "$70K - $80K",
+    "img": "src/assets/client.jpg",
+    "company": {
+      "name": "Elegance Hair Studio",
+      "description": "Elegance Hair Studio is renowned for its top-notch services and experienced stylists. We strive to create a welcoming environment where every client leaves feeling beautiful.",
+      "contactEmail": "contact@elegancehair.com",
+      "contactPhone": "555-555-5555"
+    }
+  },
+  {
+    "id": "2",
+    "title": "Modern Barber Shop",
+    "location": "Miami, FL",
+    "description": "Join our modern barber shop offering classic and contemporary haircuts, hot towel shaves, and grooming services for men of all ages.",
+    "salary": "$70K - $80K",
+    "img": "src/assets/business.jpg",
+    "company": {
+      "name": "Groomed Gentlemen",
+      "description": "Groomed Gentlemen is dedicated to providing exceptional barber services with a focus on precision and style. Our team is passionate about helping clients look sharp and confident.",
+      "contactEmail": "contact@groomedgentlemen.com",
+      "contactPhone": "555-555-5555"
+    }
+  },
+  {
+    "id": "3",
+    "title": "Urban Barber Shop",
+    "location": "Brooklyn, NY",
+    "description": "Our urban barber shop specializes in trendy cuts, beard grooming, and hair designs, perfect for the modern man looking for a fresh style.",
+    "salary": "$70K - $80K",
+    "img": "src/assets/urban_barber.jpg",
+    "company": {
+      "name": "Urban Cut",
+      "description": "Urban Cut is a vibrant and dynamic barber shop that prides itself on creativity and customer satisfaction. Our barbers are skilled in the latest techniques and trends.",
+      "contactEmail": "contact@urbancut.com",
+      "contactPhone": "555-555-5555"
+    }
+  },
+  {
+    "id": "4",
+    "title": "Hair Care Salon",
+    "description": "Our hair care salon offers specialized treatments such as deep conditioning, scalp massages, and custom hair care routines to maintain healthy, beautiful hair.",
+    "location": "Phoenix, AZ",
+    "salary": "$60K - $70K",
+    "img": "src/assets/hair_salon3.jpg",
+    "company": {
+      "name": "Pure Hair Care",
+      "description": "Pure Hair Care focuses on holistic hair care solutions. We believe in using natural products to nourish and rejuvenate hair, ensuring long-lasting health and shine.",
+      "contactEmail": "contact@purehaircare.com",
+      "contactPhone": "555-555-5555"
+    }
+  },
+  {
+    "id": "5",
+    "title": "Stylish Hairdresser",
+    "description": "As a stylish hairdresser, you will provide cutting-edge haircuts, balayage, and fashion-forward styles that cater to our trendy clientele.",
+    "location": "Atlanta, GA",
+    "salary": "$90K - $100K",
+    "img": "src/assets/business.jpg",
+    "company": {
+      "name": "Chic Styles",
+      "description": "Chic Styles is a fashion-forward salon known for its innovative and trendsetting hair services. Our team is dedicated to staying ahead of the latest trends and techniques.",
+      "contactEmail": "contact@chicstyles.com",
+      "contactPhone": "555-555-5555"
+    }
+  },
+  {
+    "id": "6",
+    "title": "Creative Hairstylist",
+    "description": "Join our team of creative hairstylists who excel in providing unique and personalized hairstyles, updos, and color services that cater to our diverse client base.",
+    "location": "Portland, OR",
+    "salary": "$100K - $110K",
+    "img": "src/assets/hair_salon3.jpg",
+    "company": {
+      "name": "Innovative Hair Co.",
+      "description": "Innovative Hair Co. is dedicated to pushing the boundaries of hair design. Our stylists are encouraged to express their creativity and deliver outstanding results.",
+      "contactEmail": "contact@innovativehair.com",
+      "contactPhone": "555-555-5555"
+    }
+  }
+]
