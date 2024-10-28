@@ -1,181 +1,357 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Checkbox } from "@/components/ui/checkbox";
 
+import { createSalon, Service } from "../apiService";
 const RegisterSalon = () => {
-  // States for form inputs
-  const [salonName, setSalonName] = useState("");
-  const [location, setLocation] = useState("");
-  const [description, setDescription] = useState("");
-  const [phone, setPhone] = useState("");
-  const [services, setServices] = useState([
-    { id: "haircut", name: "Haircut" },
-    { id: "coloring", name: "Coloring" },
-    { id: "styling", name: "Styling" },
-    { id: "treatments", name: "Treatments" },
-    { id: "extensions", name: "Extensions" },
-    { id: "makeup", name: "Makeup" },
-  ]);
-  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [salon, setSalonData] = useState({
+    name: "",
+    description: "",
+    location: {
+      street: "",
+      buildingNumber: "",
+      apartmentNumber: "",
+      latitude: "",
+      longitude: "",
+      city: "",
+      province: "",
+      zipCode: "",
+    },
+    services: [] as Service[],
+  });
+
+  const [newService, setNewService] = useState({
+    name: "",
+    description: "",
+    price: "",
+    durationMinutes: "",
+  });
+
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Handle form submit
-  const handleFormSubmit = (e: React.FormEvent) => {
+  // Update salon form fields
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setSalonData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  // Update nested location fields
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSalonData((prevData) => ({
+      ...prevData,
+      location: {
+        ...prevData.location,
+        [name]: value,
+      },
+    }));
+  };
+
+  // Handle changes in service fields
+  const handleNewServiceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setNewService((prevService) => ({
+      ...prevService,
+      [name]: value,
+    }));
+  };
+
+  const addService = () => {
+    // Validate that all necessary fields are filled out
+    if (!newService.name || !newService.description || !newService.price || !newService.durationMinutes) {
+      alert("Please fill out all fields for the service.");
+      return;
+    }
+
+    // Convert the newService object to match the required types in Service
+    const completeService: Service = {
+      id: Date.now(), // Unique identifier (or use another approach)
+      salonId: 0,     // Placeholder value
+      name: newService.name,
+      description: newService.description,
+      price: parseFloat(newService.price), // Convert string to number
+      durationMinutes: parseInt(newService.durationMinutes), // Convert string to number
+    };
+
+    setSalonData((prevData) => ({
+      ...prevData,
+      services: [...prevData.services, completeService],
+    }));
+
+    setNewService({ name: "", description: "", price: "", durationMinutes: "" });
+  };
+
+  // Remove service from list
+  const removeService = (index: number) => {
+    setSalonData((prevData) => ({
+      ...prevData,
+      services: prevData.services.filter((_, i) => i !== index),
+    }));
+  };
+
+  // Form submission handler
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!termsAccepted) {
       alert("You need to accept the terms and conditions.");
       return;
     }
 
-    const salonData = {
-      salonName,
-      location,
-      description,
-      phone,
-      selectedServices,
+    const { latitude, longitude } = salon.location;
+
+    // Validate latitude and longitude are numbers
+    const parsedLatitude = parseFloat(latitude);
+    const parsedLongitude = parseFloat(longitude);
+
+    if (isNaN(parsedLatitude) || isNaN(parsedLongitude)) {
+      alert("Latitude and Longitude must be valid numbers.");
+      return;
+    }
+
+    const formattedSalonData = {
+      ...salon,
+      location: {
+        ...salon.location,
+        latitude: parsedLatitude,
+        longitude: parsedLongitude,
+      },
+      services: salon.services.map((service) => ({
+        ...service,
+        price: parseFloat(service.price),
+        duration: parseInt(service.durationMinutes),
+      })),
     };
 
-    console.log("Salon Registered:", salonData);
-    // You can handle sending salonData to your backend here
-  };
-
-  // Handle service checkbox change
-  const handleServiceChange = (serviceId: string) => {
-    setSelectedServices((prev) =>
-      prev.includes(serviceId)
-        ? prev.filter((id) => id !== serviceId)
-        : [...prev, serviceId]
-    );
+    try {
+      const response = await createSalon(formattedSalonData);
+      alert("Salon successfully registered!");
+      console.log("Response:", response);
+    } catch (error) {
+      console.error("Error registering salon:", error);
+      alert("Failed to register salon. Please try again.");
+    }
   };
 
   return (
     <>
       <section
-        className="bg-cover bg-center"
-        style={{ backgroundImage: `url(${'src/assets/collage_background.png'})` }}
+        className="min-h-screen bg-cover bg-center rounded-xl"
+        style={{ backgroundImage: `url(${('src/assets/back1.png')})` }}
       >
-        <div className="flex flex-col rounded-xl items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-          <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg--200 dark:border--700 opacity-90">
-            <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-              <h1 className="text-xl font-bold leading-tight tracking-tight text-ro-900 md:text-2xl dark:text-black">
+        <div className="flex flex-row items-start justify-start px-6 py-8 mx-auto lg:py-0 space-x-4">
+          <div className="w-full lg:w-2/3 bg-white rounded-xl shadow-md dark:border xl:p-0 dark:bg-gray-200 dark:border-gray-700 opacity-96">
+            <div className="p-6 space-y-4 rounded-xl md:space-y-6 sm:p-8">
+              <h1 className="text-xl font-bold leading-tight tracking-tight text-rose-900 md:text-2xl dark:text-black">
                 Create an account
               </h1>
               <br />
               <form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-                
-                {/* Salon Name */}
                 <div>
-                  <label htmlFor="salon-name" className="block mb-2 text-sm font-medium text-rose-900 dark:text-black">
+                  <label htmlFor="salon-name" className="block rounded-xl mb-2 text-sm font-bold text-rose-900 dark:text-black">
                     Salon Name
                   </label>
                   <input
                     type="text"
-                    name="salon-name"
+                    name="name"
                     id="salon-name"
-                    className="bg-rose-50 border border-rose-300 text-rose-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-rose-100 dark:border-rose-300 dark:placeholder-rose-400 dark:text-black dark:focus:ring-rose-500 dark:focus:border-rose-500"
+                    className="bg-gray-50 border border-rose-100 text-rose-900 text-sm rounded-xl focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                     placeholder="Happy Hair Salon"
-                    value={salonName}
-                    onChange={(e) => setSalonName(e.target.value)}
+                    value={salon.name}
+                    onChange={(e) => setSalonData({ ...salon, name: e.target.value })}
                     required
                   />
                 </div>
 
-                {/* Location */}
                 <div>
-                  <label htmlFor="location" className="block mb-2 text-sm font-medium text-rose-900 dark:text-black">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    name="location"
-                    id="location"
-                    className="bg-rose-50 border border-rose-300 text-rose-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-rose-100 dark:border-rose-300 dark:placeholder-rose-400 dark:text-black dark:focus:ring-rose-500 dark:focus:border-rose-500"
-                    placeholder="123 Main Street"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    required
-                  />
-                </div>
-
-                {/* Phone Number (optional) */}
-                <div>
-                  <label htmlFor="phone" className="block mb-2 text-sm font-medium text-rose-900 dark:text-black">
-                    Phone Number (Optional)
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    id="phone"
-                    className="bg-rose-50 border border-rose-300 text-rose-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-rose-100 dark:border-rose-300 dark:placeholder-rose-400 dark:text-black dark:focus:ring-rose-500 dark:focus:border-rose-500"
-                    placeholder="123-456-789"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </div>
-
-                {/* Services */}
-                <div>
-                  <label className="block mb-2 text-sm font-medium text-rose-900 dark:text-black">
-                    Services Offered
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {services.map((service) => (
-                      <div key={service.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={service.id}
-                          checked={selectedServices.includes(service.id)}
-                          onCheckedChange={() => handleServiceChange(service.id)}
-                        />
-                        <label htmlFor={service.id} className="text-sm text-rose-900 dark:text-black">
-                          {service.name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label htmlFor="description" className="block mb-2 text-sm font-medium text-rose-900 dark:text-black">
+                  <label htmlFor="description" className="block rounded-xl mb-2 text-sm font-bold text-rose-900 dark:text-black">
                     Description
                   </label>
                   <textarea
                     name="description"
                     id="description"
-                    className="bg-rose-50 border border-rose-300 text-rose-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-rose-100 dark:border-rose-300 dark:placeholder-rose-400 dark:text-black dark:focus:ring-rose-500 dark:focus:border-rose-500"
+                    className="bg-gray-50 border border-rose-100 text-rose-900 text-sm rounded-xl focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                     placeholder="Describe your salon"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    value={salon.description}
+                    onChange={handleInputChange}
                     rows={4}
                     required
                   />
                 </div>
 
-                {/* Terms and Conditions */}
+                {/* Location Fields */}
+                <div>
+                  <label className="block rounded-xl mb-2 text-sm font-bold text-rose-900 dark:text-black">
+                    Location Details
+                  </label>
+                  <div className="grid rounded-xl grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      name="street"
+                      placeholder="Street"
+                      value={salon.location.street}
+                      onChange={handleLocationChange}
+                      required
+                      className="bg-gray-50 border border-rose-100 text-sm rounded-xl p-2.5"
+                    />
+                    <input
+                      type="text"
+                      name="buildingNumber"
+                      placeholder="Building Number"
+                      value={salon.location.buildingNumber}
+                      onChange={handleLocationChange}
+                      required
+                      className="bg-gray-50 border border-rose-100 text-sm rounded-xl p-2.5"
+                    />
+                    <input
+                      type="text"
+                      name="apartmentNumber"
+                      placeholder="Apartment Number"
+                      value={salon.location.apartmentNumber}
+                      onChange={handleLocationChange}
+                      className="bg-gray-50 border border-rose-100 text-sm rounded-xl p-2.5"
+                    />
+                    <input
+                      type="text"
+                      name="city"
+                      placeholder="City"
+                      value={salon.location.city}
+                      onChange={handleLocationChange}
+                      required
+                      className="bg-gray-50 border border-rose-100 text-sm rounded-xl p-2.5"
+                    />
+                    <input
+                      type="text"
+                      name="province"
+                      placeholder="Province"
+                      value={salon.location.province}
+                      onChange={handleLocationChange}
+                      className="bg-gray-50 border border-rose-100 text-sm rounded-xl p-2.5"
+                    />
+                    <input
+                      type="text"
+                      name="zipCode"
+                      placeholder="Zip Code"
+                      value={salon.location.zipCode}
+                      onChange={handleLocationChange}
+                      className="bg-gray-50 border border-rose-100 text-sm rounded-xl p-2.5"
+                    />
+                    <input
+                      type="text"
+                      name="latitude"
+                      placeholder="Latitude"
+                      value={salon.location.latitude}
+                      onChange={handleLocationChange}
+                      className="bg-gray-50 border border-rose-100 text-sm rounded-xl p-2.5"
+                    />
+                    <input
+                      type="text"
+                      name="longitude"
+                      placeholder="Longitude"
+                      value={salon.location.longitude}
+                      onChange={handleLocationChange}
+                      className="bg-gray-50 border border-rose-100 text-sm rounded-xl p-2.5"
+                    />
+                  </div>
+                </div>
+
+                {/* Services */}
+                <div>
+                  <label className="block mb-2 text-sm font-bold text-rose-900 dark:text-black">
+                    Add Custom Services
+                  </label>
+
+                  <div className="grid grid-cols-1 gap-2">
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Service Name"
+                      value={newService.name}
+                      onChange={handleNewServiceChange}
+                      className="bg-gray-50 rounded-xl border border-rose-100 text-sm p-2.5"
+                    />
+                    <textarea
+                      name="description"
+                      placeholder="Service Description"
+                      value={newService.description}
+                      onChange={handleNewServiceChange}
+                      className="bg-gray-50 rounded-xl border border-rose-100 text-sm p-2.5"
+                    />
+                    <input
+                      type="text"
+                      name="price"
+                      placeholder="Price"
+                      value={newService.price}
+                      onChange={(e) => setNewService({ ...newService, price: e.target.value })}
+                      className="bg-gray-50 rounded-xl border border-rose-100 text-sm p-2.5"
+                    />
+                    <input
+                      type="text"
+                      name="durationMinutes"
+                      placeholder="Duration (minutes)"
+                      value={newService.durationMinutes}
+                      onChange={handleNewServiceChange}
+                      className="bg-gray-50 rounded-xl border border-rose-100 text-sm p-2.5"
+                    />
+                    <button
+                      type="button"
+                      onClick={addService}
+                      className="bg-rose-600 rounded-xl text-white px-1 py-2"
+                    >
+                      Add Service
+                    </button>
+                  </div>
+                </div>
+
+                {/* Display added services */}
+                <div>
+                  {salon.services.length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="text-sm font-medium text-rose-900">Services List:</h3>
+                      <ul>
+                        {salon.services.map((service, index) => (
+                          <li key={index} className="mt-2">
+                            {service.name} - ${service.price} - {service.durationMinutes} minutes
+                            <button
+                              type="button"
+                              onClick={() => removeService(index)}
+                              className="ml-4 text-red-500 hover:underline"
+                            >
+                              Remove
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* Terms and conditions */}
                 <div className="flex items-start">
                   <div className="flex items-center h-5">
                     <input
                       id="terms"
-                      aria-describedby="terms"
                       type="checkbox"
-                      className="w-4 h-4 border border-rose-700 rounded bg-rose-900 focus:ring-3 focus:ring-primary-300 dark:bg-rose-700 dark:border-rose-600 dark:focus:ring-primary-600 dark:ring-offset-rose-800"
+                      className="w-4 h-4 border border-rose-700 rounded-xl bg-rose-900 focus:ring-3 focus:ring-primary-300"
                       checked={termsAccepted}
                       onChange={() => setTermsAccepted(!termsAccepted)}
                       required
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="terms" className="font-light text-rose-500 dark:text-rose-700">
-                      I accept the <Link className="font-medium text-primary-600 hover:underline dark:text-primary-500" to="#">Terms and Conditions</Link>
+                    <label htmlFor="terms" className="font-light text-rose-500">
+                      I accept the <Link className="font-medium text-primary-600 hover:underline" to="#">Terms and Conditions</Link>
                     </label>
                   </div>
                 </div>
 
-                {/* Submit Button */}
+                {/* Submit button */}
                 <div>
                   <button
                     type="submit"
-                    className="flex w-full justify-center rounded-md bg-rose-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-rose-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+                    className="flex w-full justify-center rounded-xl bg-rose-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-rose-700"
                   >
                     Create an account
                   </button>
@@ -183,6 +359,7 @@ const RegisterSalon = () => {
               </form>
             </div>
           </div>
+          <div className="hidden lg:block lg:w-1/3"></div>
         </div>
       </section>
     </>
@@ -190,3 +367,4 @@ const RegisterSalon = () => {
 };
 
 export default RegisterSalon;
+

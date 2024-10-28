@@ -1,6 +1,5 @@
 import offerts from "../offerts.json"
 import Offert from "./Offert"
-import React from 'react';
 
 const OffertListing = ({ isHome = false }) => {
   const offerListings = isHome ? offerts.slice(0,3) : offerts;

@@ -24,7 +24,7 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review }) => {
               ))}
             </div>
             <span className="text-sm text-gray-500">
-              {new Date(review.createdAt).toLocaleDateString()}
+              {review.createdAt.slice(0, 10)}
             </span>
           </div>
           <p className="text-gray-700">{review.comment}</p>

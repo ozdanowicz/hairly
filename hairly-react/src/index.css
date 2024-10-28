@@ -52,7 +52,7 @@ body {
 }
 
 .hero-section {
-  background-image: url('/assets/background-2.png');
+  background-image: url('/assets/background_2.png');
   background-size: cover; 
   background-position: center;
   font-family: PoppinsFont, Font;

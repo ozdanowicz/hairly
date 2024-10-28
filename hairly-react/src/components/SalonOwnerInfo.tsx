@@ -4,8 +4,8 @@ import { Link as NavLink} from "react-router-dom";
 const SalonOwnerInfo: React.FC = () => {
     return (
       <>
-        <section className="mb-20">
-          <Card className="bg-gray-50 border-none shadow-lg">
+        <section className="w-full max-w-5xl mx-auto mb-20">
+          <Card className="bg-gray-100 border-none shadow-lg">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold text-center">For Business Owners</CardTitle>
             </CardHeader>

@@ -1,6 +1,4 @@
 import React from 'react';
-import "/src/index.css"
-
 
 interface OffertProps {
   offert: {

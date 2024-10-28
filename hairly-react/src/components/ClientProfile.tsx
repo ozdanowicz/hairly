@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Calendar, Phone, User, LogOut, Trash2 } from "lucide-react"
+import { LogOut, Trash2 } from "lucide-react"
 
 interface Appointment {
   id: number
@@ -152,3 +152,4 @@ export function ClientProfileComponent() {
     </div>
   )
 }
+export default ClientProfileComponent;

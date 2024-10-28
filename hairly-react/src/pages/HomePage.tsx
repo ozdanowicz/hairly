@@ -1,10 +1,10 @@
 import React from 'react';
 import Hero from "../components/Hero";
-import OffertListing from "../components/OffertListing";
 import ViewAllOfferts from "../components/ViewAllOfferts";
 import SalonOwnerInfo from "../components/SalonOwnerInfo";
 
 import About from "../components/About";
+import SalonList from '@/components/SalonList';
 
 const HomePage: React.FC = () => {
   return (
@@ -12,7 +12,7 @@ const HomePage: React.FC = () => {
       <Hero />
       <About />
       <SalonOwnerInfo/>
-      <OffertListing isHome={true} />
+      <SalonList isHome={true} />
       <ViewAllOfferts />
     </>
   );

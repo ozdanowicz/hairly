@@ -31,7 +31,7 @@ export function SalonOwnerProfileComponent() {
   ]);
   const [newEmployee, setNewEmployee] = useState({ name: "", role: "" });
   const [isAddEmployeeOpen, setIsAddEmployeeOpen] = useState(false);
-  const [services, setServices] = useState<Service[]>([
+  const [services] = useState<Service[]>([
     { id: "haircut", name: "Haircut" },
     { id: "coloring", name: "Coloring" },
     { id: "styling", name: "Styling" },

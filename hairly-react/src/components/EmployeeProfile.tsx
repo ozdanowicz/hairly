@@ -32,20 +32,20 @@ interface FreeDate {
   endTime: string
 }
 
-export function EmployeeProfileComponent() {
+export function EmployeeProfile() {
   const [name, setName] = useState("Jane Doe")
   const [email, setEmail] = useState("jane.doe@example.com")
   const [phone, setPhone] = useState("+1 234 567 8901")
   const [bio, setBio] = useState("Experienced hairstylist with a passion for creating beautiful, personalized looks.")
   const [photo, setPhoto] = useState("/placeholder.svg")
-  const [services, setServices] = useState<Service[]>([
+  const [services] = useState<Service[]>([
     { id: "haircut", name: "Haircut" },
     { id: "coloring", name: "Coloring" },
     { id: "styling", name: "Styling" },
     { id: "treatments", name: "Treatments" },
   ])
   const [selectedServices, setSelectedServices] = useState<string[]>(["haircut", "coloring"])
-  const [appointments, setAppointments] = useState<Appointment[]>([
+  const [appointments] = useState<Appointment[]>([
     { id: 1, date: "2023-06-20 10:00", clientName: "Alice Johnson", service: "Haircut", status: "upcoming" },
     { id: 2, date: "2023-06-15 14:00", clientName: "Bob Smith", service: "Coloring", status: "finished", rating: 5, review: "Great service!" },
     { id: 3, date: "2023-06-10 11:00", clientName: "Carol White", service: "Styling", status: "finished", rating: 4, review: "Very satisfied" },
@@ -112,8 +112,9 @@ export function EmployeeProfileComponent() {
   }
 
   return (
+    <section className="bg-rose-50">
     <div className="container mx-auto p-4 max-w-4xl">
-      <Card className="mb-8">
+      <Card className="bg-white mb-8">
         <CardHeader>
           <CardTitle className="text-2xl">Employee Profile</CardTitle>
         </CardHeader>
@@ -165,7 +166,7 @@ export function EmployeeProfileComponent() {
                 onChange={(e) => setPhone(e.target.value)}
               />
             </div>
-            <div className="grid gap-2">
+            <div className="rounded-xl grid gap-2">
               <Label htmlFor="bio">Bio</Label>
               <Textarea
                 id="bio"
@@ -181,7 +182,7 @@ export function EmployeeProfileComponent() {
         </CardContent>
       </Card>
 
-      <Card className="mb-8">
+      <Card className="bg-white mb-8">
         <CardHeader>
           <CardTitle className="text-2xl">Services Provided</CardTitle>
         </CardHeader>
@@ -201,7 +202,7 @@ export function EmployeeProfileComponent() {
         </CardContent>
       </Card>
 
-      <Card className="mb-8">
+      <Card className="bg-white mb-8">
         <CardHeader>
           <CardTitle className="text-2xl">Appointments</CardTitle>
         </CardHeader>
@@ -239,7 +240,7 @@ export function EmployeeProfileComponent() {
         </CardContent>
       </Card>
 
-      <Card className="mb-8">
+      <Card className="bg-white mb-8">
         <CardHeader>
           <CardTitle className="text-2xl">Google Calendar Integration</CardTitle>
         </CardHeader>
@@ -273,7 +274,7 @@ export function EmployeeProfileComponent() {
         </CardContent>
       </Card>
 
-      <Card className="mb-8">
+      <Card className="bg-white mb-8">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-2xl">Free Dates</CardTitle>
           <Button onClick={handleAddFreeDate}>
@@ -328,5 +329,7 @@ export function EmployeeProfileComponent() {
         </Dialog>
       </div>
     </div>
+  </section>
   )
 }
+export default EmployeeProfile;
