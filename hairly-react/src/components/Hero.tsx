@@ -3,11 +3,13 @@ import gsap from 'gsap';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import backgroundImage from '../assets/back1.png'; // Import the background image
 
 const Hero: React.FC<{ title?: string, subtitle?: string }> = ({ title = 'Hairly', subtitle = 'Seamless Booking, Flawless Hair' }) => {
   const comp = useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -26,6 +28,10 @@ const Hero: React.FC<{ title?: string, subtitle?: string }> = ({ title = 'Hairly
 
     return () => ctx.revert();
   }, []);
+
+  const handleSearch = () => {
+    navigate('/offerts');
+  };
 
   return (
     <section
@@ -56,7 +62,8 @@ const Hero: React.FC<{ title?: string, subtitle?: string }> = ({ title = 'Hairly
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-grow text-rose-500 rounded-xl bg-rose-200 bg-opacity-30 border-rose-200 border-opacity-20"
         />
-        <Button className="ml-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl">
+        <Button className="ml-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl" onClick={handleSearch}>
+          
           <Search className="w-4 h-4 mr-2" />
           Search
         </Button>

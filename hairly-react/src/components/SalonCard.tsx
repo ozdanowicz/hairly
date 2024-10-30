@@ -32,11 +32,11 @@ export const SalonCard: React.FC<SalonCardProps> = ({ salon }) => {
               </div>
               <div className="space-y-2">
                 <p className="text-sm">
-                  <span className="font-semibold">Location:</span> 
+                  <span className="font-semibold">Location: </span> 
                   {`${salon.location?.street ?? 'Unknown street'} ${salon.location?.buildingNumber ?? ''}, ${salon.location?.city ?? 'Unknown city'}`}
                 </p>
                 <p className="text-sm">
-                  <span className="font-semibold">Price Range:</span> 
+                  <span className="font-semibold">Price Range: </span> 
                   {salon.priceRange && salon.priceRange.length > 0 
                     ? `${salon.priceRange[0]} - ${salon.priceRange[1]} zl`
                     : "Unknown price range"}
@@ -48,9 +48,9 @@ export const SalonCard: React.FC<SalonCardProps> = ({ salon }) => {
                 </div>
                 <button
                   onClick={() => setShowReviews(true)}
-                  className="text-blue-600 hover:underline text-sm font-medium"
+                  className="text-rose-700 hover:underline text-sm font-medium"
                 >
-                  {salon.reviewsCount ?? 0} Reviews
+                   Reviews
                 </button>
               </div>
             </div>

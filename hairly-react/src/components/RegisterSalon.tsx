@@ -145,7 +145,7 @@ const RegisterSalon = () => {
           <div className="w-full lg:w-2/3 bg-white rounded-xl shadow-md dark:border xl:p-0 dark:bg-gray-200 dark:border-gray-700 opacity-96">
             <div className="p-6 space-y-4 rounded-xl md:space-y-6 sm:p-8">
               <h1 className="text-xl font-bold leading-tight tracking-tight text-rose-900 md:text-2xl dark:text-black">
-                Create an account
+                Create a new salon
               </h1>
               <br />
               <form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>

@@ -42,7 +42,7 @@ export function AddFreeDates() {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="pl-10"
+              className="pl-10 border-none rounded-xl shadow"
               required
             />
           </div>
@@ -51,6 +51,7 @@ export function AddFreeDates() {
           <div className="space-y-2">
             <Label htmlFor="startTime">Start Time</Label>
             <Input
+              className='border-none rounded-xl shadow'
               id="startTime"
               type="time"
               value={startTime}
@@ -61,6 +62,7 @@ export function AddFreeDates() {
           <div className="space-y-2">
             <Label htmlFor="endTime">End Time</Label>
             <Input
+            className='border-none rounded-xl shadow'
               id="endTime"
               type="time"
               value={endTime}
@@ -94,3 +96,4 @@ export function AddFreeDates() {
     </div>
   )
 }
+export default AddFreeDates;

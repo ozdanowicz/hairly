@@ -72,7 +72,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
           />
         </div>
 
-        <Popover>
+        {/* <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -90,7 +90,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
               initialFocus
             />
           </PopoverContent>
-        </Popover>
+        </Popover> */}
 
         <div className="relative flex-grow min-w-[200px] w-full sm:w-auto rounded-xl">
         <Select onValueChange={(value) => setSortFilter(value)}>

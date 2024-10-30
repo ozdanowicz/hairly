@@ -6,8 +6,8 @@ import { Link as NavLink} from "react-router-dom";
 
 export function SalonOwnerLanding() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-rose-200 p-4 text-white">
-      <div className="max-w-3xl rounded-xl shadow-md bg-white p-8 backdrop-blur-lg">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 text-white">
+      <div className="max-w-3xl rounded-xl shadow-xl bg-white p-8">
         <h1 className="mb-6 text-center text-rose-500 text-4xl font-bold">Grow Your Salon Business</h1>
         <p className="mb-8 text-center text-rose-500 text-xl">
           Register as a hair salon or barber shop owner to help your client base grow and thrive in the digital age.

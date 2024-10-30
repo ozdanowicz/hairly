@@ -44,7 +44,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ salonId }) => {
           <div key={review.id} className="p-4 mb-4 border rounded-lg shadow-sm">
             <div className="flex items-center">
               <span className="text-yellow-500">{'★'.repeat(review.rating)}</span>
-              <span className="ml-2 text-sm text-gray-600">{review.createdAt}</span>
+              <span className="ml-2 text-sm text-gray-600">{review.createdAt.slice(0,10)}</span>
             </div>
             <p className="mt-2 text-gray-800">{review.comment}</p>
           </div>

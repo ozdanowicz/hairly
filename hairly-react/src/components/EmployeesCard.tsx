@@ -14,7 +14,7 @@ const EmployeesCard: React.FC<{ salonId: number }> = ({ salonId }) => {
       try {
         const employeeList = await fetchEmployeesBySalon(salonId);
         if (!employeeList || !employeeList.length) {
-          setEmployees([]);  // No employees found, set empty array
+          setEmployees([]);  
         } else {
           const detailedEmployees = await Promise.all(
             employeeList.map(async (employee) => {

@@ -6,34 +6,40 @@ import { ClientDashboardComponent } from '@/components/ClientDashboard';
 import OwnerDashboard from '@/components/OwnerDashboard';
 
 const ProfilePage: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
   
-
-  useEffect(() => {
-    const fetchUser = async () => {
-        const token = localStorage.getItem('access_token'); 
+    useEffect(() => {
+      const fetchUser = async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessToken = urlParams.get('access_token');
+        const token = accessToken || localStorage.getItem('authToken');
+  
+        if (accessToken) {
+          localStorage.setItem('authToken', accessToken); // Store token if present in URL
+        }
+  
         console.log("Fetching user with token:", token);
-
+  
         if (!token) {
-            setError("No authentication token found");
-            setLoading(false);
-            return;
+          setError("User is not authenticated.");
+          setLoading(false);
+          return;
         }
-
+  
         try {
-            const userData = await fetchUserData(token); 
-            setUser(userData);
+          const userData = await fetchUserData(token);
+          setUser(userData);
         } catch (error) {
-            setError(error instanceof Error ? error.message : 'Unknown error occurred');
+          setError(error instanceof Error ? error.message : 'Unknown error occurred');
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    };
-
-    fetchUser();
-}, []);
+      };
+  
+      fetchUser();
+    }, []);
 
 
   if (loading) return <div>Loading...</div>;

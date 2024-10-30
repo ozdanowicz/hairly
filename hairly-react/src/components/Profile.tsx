@@ -1,8 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
+import { User } from '../apiService';
 
 const Profile: React.FC = () => {
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<User>();
 
     useEffect(() => {
         const fetchUser = async () => {

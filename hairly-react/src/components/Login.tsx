@@ -5,6 +5,7 @@ import collageBackground from '@/assets/back1.png';
 
 const Login: React.FC = () => {
   const handleGoogleLogin = () => {
+     //localStorage.removeItem('authToken');
       window.location.href = `http://localhost:8080/login/oauth2/code/google`; 
     };
     

@@ -15,6 +15,9 @@ import ProfilePage from './pages/ProfilePage.tsx';
 import { ClientDashboardComponent } from './components/ClientDashboard.tsx';
 import EmployeeProfile from './components/EmployeeProfile.tsx';
 import OAuthCallback from './components/OAuthCallback.tsx';
+import ReviewFormComponent from './components/ReviewForm.tsx';
+import RegisterSalon from './components/RegisterSalon.tsx';
+import AddFreeDates from './components/FreeDatesForm.tsx';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -32,6 +35,12 @@ const router = createBrowserRouter(
       <Route path='/salon-owner-profile' element={<SalonOwnerProfilePage />} />
       <Route path='/client-profile' element={<ClientDashboardComponent/>} />
       <Route path='/employee-profile' element={<EmployeeProfile />} />
+      <Route path='/review-form' element={<ReviewFormComponent />} />
+      <Route path='/register-salon' element={<RegisterSalon/>} />
+      <Route path='/add-dates' element={<AddFreeDates/>} />
+      {/* <Route path='/employee-profile' element={<EmployeeProfileComponent />} />
+      <Route path='/owner-profile' element={<OwnerProfileComponent />} />
+      <Route path='/user-profile' element={<UserProfileComponent /> */}
     </Route>
   )
 );

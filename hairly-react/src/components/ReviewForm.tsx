@@ -45,6 +45,7 @@ export function AnimatedReviewForm() {
             <div>
               <Label htmlFor="name">Name</Label>
               <Input
+                className="border-non rounded-xl"
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -70,13 +71,14 @@ export function AnimatedReviewForm() {
             <div>
               <Label htmlFor="review">Review</Label>
               <Textarea
+                className="border-non rounded-xl"
                 id="review"
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
+            <Button className=" bg-rose-500 text-white border-non rounded-xl px-2 py-2 hover:bg-rose-700 hover:text-white focus:ring-2 focus:ring-rose-700 focus:ring-opacity-50" type="submit">
               Submit Review
             </Button>
           </form>
@@ -116,4 +118,5 @@ export function AnimatedReviewForm() {
       </Card>
     </div>
   )
-}
+};
+export default AnimatedReviewForm;

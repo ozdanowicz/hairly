@@ -256,26 +256,24 @@ export const fetchSalonSchedule = async (salonId: number): Promise<Schedule[]> =
   }
 };
 
-export const fetchUserData = async (token: string): Promise<User> => {
-  if (!token) {
-      throw new Error('No authentication token found');
-  }
+export async function fetchUserData(token: string): Promise<User> {
+  if (!token) throw new Error('No authentication token found');
 
   const response = await fetch('http://localhost:8080/api/v1/auth/user', {
-      method: 'GET',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Correctly formatted
-      },
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
   });
 
-  if (!response.ok) {
-      throw new Error('Failed to fetch user data: ' + response.statusText);
-  }
+  if (!response.ok) throw new Error('Failed to fetch user data');
 
   const userData: User = await response.json();
   return userData;
-};
+}
+
+
 
 
 export const fetchClientAppointments = async (clientId: number): Promise<Appointment[]> =>{

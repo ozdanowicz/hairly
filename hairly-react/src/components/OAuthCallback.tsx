@@ -1,22 +1,24 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-const OAuthCallback: React.FC = () => {
+export function OAuthCallbackHandler() {
+    const location = useLocation();
     const navigate = useNavigate();
 
     useEffect(() => {
-        const queryParams = new URLSearchParams(window.location.search);
-        const token = queryParams.get('access_token'); 
+        const params = new URLSearchParams(location.search);
+        const token = params.get('access_token');
+
         if (token) {
-            localStorage.setItem('access_token', token);
-            navigate('/profile');
+            localStorage.setItem('access_token', token);  // Zapisz token JWT
+            navigate('/profile');  // Przekieruj do strony profilu
         } else {
-            console.error("Token not found");
-            navigate('/login');
+            console.error('Brak tokenu w URL');
+            navigate('/login');  // Przekierowanie do logowania w razie braku tokenu
         }
-    }, [navigate]);
+    }, [location, navigate]);
 
     return <div>Loading...</div>; 
 };
 
-export default OAuthCallback;
+export default OAuthCallbackHandler;

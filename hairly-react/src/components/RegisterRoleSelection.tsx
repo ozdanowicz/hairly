@@ -1,53 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import{ useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Scissors, User, Briefcase } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import {Role } from '../apiService'; // Adjust the path as needed
+import { useNavigate } from 'react-router-dom';
+import { Role, fetchUserData} from '@/apiService'; 
+import {useAuth} from '@/tokenService';
+
+
+export interface User {
+  id: number;
+  name: string;
+  surname: string;
+  email: string;
+  role: Role;
+}
+
 
 export function RegisterRoleSelectionComponent() {
-    const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-    const [accessToken, setAccessToken] = useState<string | null>(null);
-    const navigate = useNavigate();
-    const location = useLocation();
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+  const { token, setToken } = useAuth();
 
-    // Extract access token from URL
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const token = params.get('access_token');
-        if (token) {
-            setAccessToken(token);
-            localStorage.setItem('access_token', token);  // Use the same key for consistency
-        }
-    }, [location.search]);
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get('access_token');
 
-    const handleContinue = () => {
-        if (selectedRole && accessToken) {
-            console.log('Selected role:', selectedRole);
-            fetch("http://localhost:8080/api/v1/auth/add-role?role=EMPLOYEE", {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ role: selectedRole })
-            })
-            .then(response => {
-                if (response.ok) {
-                    console.log('Role updated successfully');
-                    navigate('/profile');  // Redirect to profile after role assignment
-                } else {
-                    console.error('Failed to update role:', response.statusText);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-    };
+    if (accessToken) {
+      setToken(accessToken);
+      localStorage.setItem('authToken', accessToken);
+    }
+
+    const effectiveToken = accessToken || token; // Use URL token or stored token
+
+    if (effectiveToken) {
+      fetchUserData(effectiveToken)
+        .then((userData) => setUser(userData))
+        .catch((error) => {
+          console.error('Error fetching user data:', error);
+          navigate('/login'); // Redirect to login on failure
+        });
+    } else {
+      navigate('/login');
+    }
+  }, [token, navigate, setToken]);
+
+  return (
+    <div>
+      {/* Role selection UI here */}
+    </div>
+  );
 
 
 

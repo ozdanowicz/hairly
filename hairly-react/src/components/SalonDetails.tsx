@@ -6,6 +6,7 @@ import { Salon, fetchSalonDetails, Service } from '../apiService';
 import EmployeesCard from './EmployeesCard.tsx';
 import ImageCarousel from "./ImageCarousel";
 import SalonServices from './SalonServices.tsx';
+import LocationCard from './LocationCard.tsx';
 
 const SalonDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -83,16 +84,13 @@ const SalonDetails: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          {/* Image Carousel */}
+          <LocationCard location={salon.location} />
         </div>
 
         {/* Right Column */}
         <div className="space-y-8">
-          {/* Salon Services */}
           <ImageCarousel images={salon.salonImages} />
           <SalonServices services={salon.services} setSelectedService={setSelectedService} />
-
-          {/* Recent Ratings */}
         </div>
       </div>
     </div>
