@@ -2,13 +2,14 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Trash2, GripVertical, Edit } from "lucide-react"
+import {  Edit } from "lucide-react"
 import { Employee, Service, Schedule, Salon } from "@/apiService"
-import { fetchOwnerSalon, fetchSalonSchedule, fetchEmployeesBySalon, fetchServices, Location } from "@/apiService"
-import { Image } from "@radix-ui/react-avatar"
+import { fetchOwnerSalon, fetchSalonSchedule, fetchEmployeesBySalon, fetchServices} from "@/apiService"
 import ImageCarousel from "./ImageCarousel"
+
 import EmployeesCard from "./EmployeesCard"
 import LocationCard from "./LocationCard"
+import { NavLink } from "react-router-dom"
 
 
 interface OwnerInfo {
@@ -61,10 +62,12 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
         <h1 className="text-3xl font-bold text-rose-900 mb-8 dark:text-black">
           Salon Owner Dashboard
         </h1>
-        <Button variant="outline" className="flex items-center gap-2 border-non rounded-xl">
-              <Edit className="w-4 h-4" />
-              Edit Salon Info
+        <NavLink to="/profile/owner-edit-dashboard" state={{ user }}>
+        <Button variant="outline" className="flex items-center gap-2 border-none rounded-xl">
+          <Edit className="w-4 h-4" />
+          Edit Salon Info
         </Button>
+      </NavLink>
         </div>
 
         <Card className="mb-8">
@@ -130,14 +133,14 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
           </CardContent>
       </Card>
 
-        {/* <Card className="mb-8">
+        <Card className="mb-8">
           <CardHeader>
             <CardTitle>Salon Photos</CardTitle>
           </CardHeader>
           <CardContent>
-          <ImageCarousel images={salon.salonImages} />
+          <ImageCarousel images={salon?.salonImages} />
           </CardContent>
-        </Card> */}
+        </Card>
 
         <Card className="bg-destructive text-destructive-foreground">
           <CardHeader>

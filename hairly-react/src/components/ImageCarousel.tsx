@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import {convertToBase64} from  '../apiService';
+import { convertToBase64 } from '../apiService';
 
 interface ImageCarouselProps {
   images: { imageData: string; contentType: string }[];
@@ -12,7 +12,7 @@ const IMAGE_TRANSITION = {
   opacity: { duration: 0.2 },
 };
 
-export const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
+export const ImageCarousel: React.FC<ImageCarouselProps> = ({ images = [] }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [direction, setDirection] = useState(0);
 

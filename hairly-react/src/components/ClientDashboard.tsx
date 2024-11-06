@@ -8,7 +8,7 @@ import { fetchClientAppointments, fetchClientReviews, Appointment, Review } from
 import RatingStars from './RatingStars'
 
 interface ClientInfo {
-  userId: number
+  id: number
   name: string
   surname: string
   phone: string
@@ -16,17 +16,11 @@ interface ClientInfo {
 }
 
 interface ClientDashboardProps {
-  user: { id: number } & ClientInfo;
+  user: ClientInfo;
 }
 
-export function ClientDashboardComponent({ user }: ClientDashboardProps) {
-  const [clientInfo, setClientInfo] = useState<ClientInfo>({
-    userId: user.userId,
-    name: user.name,
-    surname: user.surname,
-    phone: user.phone,
-    email: user.email
-  });
+export function ClientDashboard({ user }: ClientDashboardProps) {
+  const [clientInfo, setClientInfo] = useState<ClientInfo>({ ...user });
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -39,7 +33,7 @@ export function ClientDashboardComponent({ user }: ClientDashboardProps) {
     const loadData = async () => {
       try {
         setLoadingAppointments(true);
-        const fetchedAppointments = await fetchClientAppointments(user.userId);
+        const fetchedAppointments = await fetchClientAppointments(user.id);
         setAppointments(fetchedAppointments);
       } catch (error) {
         console.error("Error fetching appointments:", error);
@@ -50,7 +44,7 @@ export function ClientDashboardComponent({ user }: ClientDashboardProps) {
 
       try {
         setLoadingReviews(true);
-        const fetchedReviews = await fetchClientReviews(user.userId);
+        const fetchedReviews = await fetchClientReviews(user.id);
         setReviews(fetchedReviews);
       } catch (error) {
         console.error("Error fetching reviews:", error);
@@ -61,7 +55,7 @@ export function ClientDashboardComponent({ user }: ClientDashboardProps) {
     };
 
     loadData();
-  }, [user.userId]);
+  }, [user.id]);
 
   const handleEdit = () => setEditMode(true)
   const handleSave = () => setEditMode(false)
@@ -181,3 +175,4 @@ export function ClientDashboardComponent({ user }: ClientDashboardProps) {
     </section>
   )
 }
+export default ClientDashboard;

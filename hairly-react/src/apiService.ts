@@ -39,7 +39,7 @@ export interface SpecializationEnum {
 export interface Specialization {
   id: number;
   employeeId: number;
-  name: string;
+  name: SpecializationEnum;
 }
 
 export interface Schedule {
@@ -99,6 +99,13 @@ export interface SalonSearchCriteria {
   reviews?: string;
   latitude?: number;
   longitude?: number;
+}
+
+export interface UserUpdateForm {
+  name: string;
+  surname: string;
+  email: string;
+  phone: string;
 }
 
 export interface User {
@@ -249,7 +256,7 @@ export const fetchOwnerSalon = async (ownerId: number): Promise<Salon> => {
 export const fetchSalonSchedule = async (salonId: number): Promise<Schedule[]> =>{
   try {
     const response = await axios.get(`${BASE_URL}/salon/${salonId}/schedule`);
-    return response.data; // Return the appointments data
+    return response.data;
   } catch (error) {
     console.error("Failed to load salon schedule:", error);
     throw error; 
@@ -266,6 +273,8 @@ export async function fetchUserData(token: string): Promise<User> {
       'Authorization': `Bearer ${token}`,
     },
   });
+  // const data = await response.text(); // Change to text first to see the raw response
+  // console.log("Raw user data response:", data);
 
   if (!response.ok) throw new Error('Failed to fetch user data');
 
@@ -296,23 +305,56 @@ export const fetchClientReviews = async (clientId: number): Promise<Review[]> =>
   }
 };
 
-export const fetchEmployeeAppointments = async (employeeId: number): Promise<Appointment[]> =>{
+export const fetchEmployeeAppointments = async (employeeId: number): Promise<Appointment[]> => {
   try {
     const response = await axios.get(`${BASE_URL}/employee/${employeeId}/appointments`);
-    return response.data; 
+    return response.data;
   } catch (error) {
     console.error("Failed to load employee appointments:", error);
-    throw error; 
+    throw error;
   }
 };
 
-export const fetchEmployeeSpecializations = async (employeeId: number): Promise<Specialization[]> =>{
+export const fetchEmployeeSpecializations = async (employeeId: number): Promise<Specialization[]> => {
   try {
     const response = await axios.get(`${BASE_URL}/employee/${employeeId}/specializations`);
-    return response.data; 
+    return response.data;
   } catch (error) {
     console.error("Failed to load employee specializations:", error);
-    throw error; 
+    throw error;
+  }
+};
+
+export const updateUserPersonalInfo = async (userId: number, form: UserUpdateForm): Promise<void> => {  
+  try {
+    await axios.put(`${BASE_URL}/user/${userId}`, form);
+  } catch (error) {
+    console.error("Failed to update user personal info:", error);
+    throw error;
+  }
+}
+
+export const updateEmployeeSpecializations = async (employeeId: number, specializations: Specialization[]): Promise<Specialization[]> => {
+  try {
+    const specializationPayload = specializations.map(spec => ({
+      id: spec.id, // Only include this if it's already stored; otherwise, it could be undefined for new specs
+      specialization: spec.name // Ensure this matches the backend expected enum value
+    }));
+    const response = await axios.put(`${BASE_URL}/employee/${employeeId}/specializations`, { specializations: specializationPayload });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update employee specializations:", error);
+    throw error;
+  }
+};
+
+export const loadSpecializations = async () => {
+  try {
+    const response = await fetch(`${BASE_URL}/specialization/enums`);
+    const data = await response.json();
+    return data; // List of enums from backend
+  } catch (error) {
+    console.error("Error fetching specializations:", error);
   }
 };
 
@@ -325,6 +367,51 @@ export const fetchSalonsByLocation = async (latitude: number, longitude: number,
     return response.data;
   } catch (error) {
     console.error('Error fetching salons by location:', error);
+    throw error;
+  }
+};
+
+export const updateSalonLocation = async (salonId: number, location: CreateLocationRequest): Promise<void> => {
+  try {
+    await axios.put(`${BASE_URL}/location/${salonId}/location`, location);
+  } catch (error) {
+    console.error("Failed to update salon location:", error);
+    throw error;
+  }
+};
+
+interface CreateLocationRequest {
+  street: string;
+  buildingNumber: string;
+  apartmentNumber?: string;
+  latitude: number;
+  longitude: number;
+  city: string;
+  province: string;
+  zipCode: string;
+}
+
+interface ServiceTypeRequest {
+  id?: number; // Existing services will have an ID; new ones may not
+  name: string;
+  description: string;
+  price: number;
+  durationMinutes: number;
+}
+
+export const updateSalonServices = async (salonId: number, services: ServiceTypeRequest[]): Promise<ServiceTypeRequest[]> => {
+  try {
+    const servicesPayload = services.map(service => ({
+      id: service.id, // Only include this if it’s an existing service; new services may not have an ID
+      name: service.name,
+      description: service.description,
+      price: service.price,
+      durationMinutes: service.durationMinutes,
+    }));
+    const response = await axios.put(`${BASE_URL}/salon/${salonId}/services`, { services: servicesPayload });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update salon services:", error);
     throw error;
   }
 };

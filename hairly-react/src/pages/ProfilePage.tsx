@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import EmployeeDashboard from "../components/EmployeeDashboard";
 import { fetchUserData, User, Role } from '../apiService';
-import { ClientDashboardComponent } from '@/components/ClientDashboard';
-import OwnerDashboard from '@/components/OwnerDashboard';
+import ClientDashboard from '../components/ClientDashboard';
+import OwnerDashboard from '../components/OwnerDashboard';
 
 const ProfilePage: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
@@ -53,7 +53,7 @@ const ProfilePage: React.FC = () => {
       case Role.OWNER:
           return <OwnerDashboard user={user} />;
       case Role.CLIENT:
-          return <ClientDashboardComponent user={user} />;
+          return <ClientDashboard user={user} />;
       case Role.EMPLOYEE:
           return <EmployeeDashboard user={user} />;
       default:
