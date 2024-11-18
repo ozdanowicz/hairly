@@ -14,7 +14,7 @@ interface ServicesProps {
 const SalonServices: React.FC<ServicesProps> = ({ services, setSelectedService }) => {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader  className="flex flex-row items-center justify-between space-y-0 pt-4 pb-4 mb-3 bg-gray-100 mb-4 rounded-xl">
         <CardTitle>Our Services</CardTitle>
       </CardHeader>
       <CardContent>

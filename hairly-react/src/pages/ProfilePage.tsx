@@ -20,7 +20,6 @@ const ProfilePage: React.FC = () => {
           localStorage.setItem('authToken', accessToken); // Store token if present in URL
         }
   
-        console.log("Fetching user with token:", token);
   
         if (!token) {
           setError("User is not authenticated.");

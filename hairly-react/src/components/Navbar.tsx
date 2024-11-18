@@ -1,10 +1,13 @@
 import { Link as NavLink, useLocation } from "react-router-dom";
 import React from "react";
 import "/src/index.css";
+import { useAuth, isTokenExpired } from "../tokenService";
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  const { token } = useAuth();
+  const isAuthenticated = token && !isTokenExpired(); 
 
   return (
     <nav
@@ -41,12 +44,21 @@ const Navbar: React.FC = () => {
               >
                 For Business
               </NavLink>
+              {isAuthenticated ? (
               <NavLink
+                to="/profile"
+                className="text-rose-700 font-bold bg-white bg-opacity-80 rounded-xl px-4 py-2 transition-all duration-300 ease-in-out transform hover:bg-rose-900 hover:text-white hover:scale-105 focus:ring-2 focus:ring-rose-700 focus:ring-opacity-50"
+              >
+                Your Profile
+              </NavLink>
+              ) : (
+                <NavLink
                 to="/login"
                 className="text-rose-700 font-bold bg-white bg-opacity-80 rounded-xl px-4 py-2 transition-all duration-300 ease-in-out transform hover:bg-rose-900 hover:text-white hover:scale-105 focus:ring-2 focus:ring-rose-700 focus:ring-opacity-50"
               >
                 Login
               </NavLink>
+              )}
             </div>
           </div>
         </div>

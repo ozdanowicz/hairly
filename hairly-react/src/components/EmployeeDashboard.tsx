@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pen, Save } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { fetchEmployeeAppointments, Appointment, fetchEmployeeSpecializations, loadSpecializations, updateEmployeeSpecializations, Specialization, SpecializationEnum, } from '@/apiService';
+import { Edit, Save } from "lucide-react";
+import { Schedule, fetchEmployeeByUser, fetchEmployeeAppointments, fetchEmployeeSpecializations, Specialization,fetchEmployeeSalon, fetchEmployeeSchedule, EmployeeAppointment, updateUserPersonalInfo } from '@/apiService';
+import {fetchSalonSchedule} from '@/salonService';
+import EmployeeScheduleCard from './EmployeeScheduleCard';
+import SalonScheduleView from './SalonScheduleView';
+import AppointmentCard from './AppointmentCard';
+import { toast } from 'react-toastify';
+import PersonalInfoCard from './PersonalInfoCard';
 
 interface EmployeeInfo {
   id: number;
@@ -11,10 +16,6 @@ interface EmployeeInfo {
   surname: string;
   email: string;
   phone: string;
-}
-
-interface SpecializationEnum {
-  specialization: string;
 }
 
 interface EmployeeDashboardProps {
@@ -29,208 +30,161 @@ export function EmployeeDashboard({ user }: EmployeeDashboardProps) {
     phone: user.phone,
     email: user.email,
   });
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [salonSchedules, setSalonSchedules] = useState<Schedule[]>([]);
   const [specializations, setSpecializations] = useState<Specialization[]>([]);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [allSpecializations, setAllSpecializations] = useState<SpecializationEnum[]>([]);
-  const [newSpecialization, setNewSpecialization] = useState('');
-  const [loadingAppointments, setLoadingAppointments] = useState<boolean>(true);
-  const [loadingSpecializations, setLoadingSpecializations] = useState<boolean>(true);
+  const [appointments, setAppointments] = useState<EmployeeAppointment[]>([]);
+  const [loading, setLoading] = useState({ appointments: true, specializations: true });
   const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        setLoadingAppointments(true);
-        const fetchedAppointments = await fetchEmployeeAppointments(employeeInfo.id);
+        const fetchedAppointments = await fetchEmployeeAppointments(user.id);
         setAppointments(fetchedAppointments);
       } catch (error) {
-        console.error("Error fetching appointments:", error);
         setError("Failed to load appointments");
       } finally {
-        setLoadingAppointments(false);
+        setLoading((prev) => ({ ...prev, appointments: false }));
       }
 
       try {
-        setLoadingSpecializations(true);
-        const [fetchedSpecializations, fetchedAllSpecializations] = await Promise.all([
-          fetchEmployeeSpecializations(user.id),
-          loadSpecializations()
-        ]);
-        setSpecializations(fetchedSpecializations);
-        setAllSpecializations(fetchedAllSpecializations);
+        const fetchedSchedules = await fetchEmployeeSchedule(user.id);
+        setSchedules(fetchedSchedules);
       } catch (error) {
-        console.error("Error fetching specializations:", error);
+        setError("Failed to load schedules");
+      }
+
+      try {
+        const fetchedEmployee = await fetchEmployeeByUser(user.id);
+        const salonId = await fetchEmployeeSalon(fetchedEmployee.id);
+        if (salonId) {
+          const fetchedSalonSchedules = await fetchSalonSchedule(salonId);
+          setSalonSchedules(fetchedSalonSchedules);
+        }
+      } catch (error) {
+        setError("Failed to load salon or employee data");
+      }
+
+      try {
+        const fetchedSpecializations = await fetchEmployeeSpecializations(user.id);
+        setSpecializations(fetchedSpecializations);
+      } catch (error) {
         setError("Failed to load specializations");
       } finally {
-        setLoadingSpecializations(false);
+        setLoading((prev) => ({ ...prev, specializations: false }));
       }
     };
 
     loadData();
   }, [user.id]);
 
-  const handleAddSpecialization = () => {
-    if (newSpecialization.trim() && !specializations.some(spec => spec.specialization === newSpecialization)) {
-      setSpecializations([...specializations, { specialization: newSpecialization }]); // Add new specialization
-      setNewSpecialization(''); // Clear the input field
-    }
-  };
-
-  const handleDeleteSpecialization = (specializationToDelete) => {
-    setSpecializations(specializations.filter(spec => spec.specialization !== specializationToDelete));
-  };
-
-  const handleSpecializationChange = (value: string) => {
-    const selectedSpecialization = allSpecializations.find(spec => spec.name === value);
-    if (selectedSpecialization && !specializations.some(spec => spec.name === value)) {
-        setSpecializations([...specializations, selectedSpecialization]);
-    }
-    };
   const handleEdit = () => setEditMode(true);
 
   const handleSave = async () => {
-    setEditMode(false);
     try {
-      await updateEmployeeSpecializations(user.id, specializations);
+      await updateUserPersonalInfo(user.id, employeeInfo);
+      toast.success("Personal information updated successfully");
+      setEditMode(false);
     } catch (error) {
-      console.error("Error updating specializations:", error);
       setError("Failed to update specializations");
+      toast.error("Failed to update personal information");
     }
+    setEditMode(false);
   };
 
   return (
-    <section className="bg-cover bg-rose-50 bg-center min-h-screen flex items-center justify-center px-4 py-8">
+    <section className="bg-cover bg-rose-50 bg-center min-h-screen flex items-center justify-center px-4 py-4">
       <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg dark:border md:mt-0 p-6 dark:bg-rose-200 dark:border-rose-700 opacity-95">
         <h1 className="text-2xl font-bold leading-tight tracking-tight text-rose-900 mb-6 dark:text-black">
           Employee Dashboard
         </h1>
         
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Personal Information</CardTitle>
-              <Button variant="ghost" size="icon" onClick={editMode ? handleSave : handleEdit}>
-                {editMode ? <Save className="h-4 w-4" /> : <Pen className="h-4 w-4" />}
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {Object.entries(employeeInfo).map(([key, value]) => {
-                  if (key === 'specializations' || key === 'id') return null;
-                  return (
-                    <div key={key} className="flex justify-between">
-                      <span className="font-medium">{key.charAt(0).toUpperCase() + key.slice(1)}:</span>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={value as string}
-                          onChange={(e) => setEmployeeInfo(prev => ({ ...prev, [key]: e.target.value })) }
-                          className="bg-rose-50 border border-rose-300 text-rose-900 text-sm rounded-lg focus:ring-rose-500 focus:border-rose-500 p-1 dark:bg-rose-100 dark:border-rose-300 dark:placeholder-rose-400 dark:text-black"
-                        />
-                      ) : (
-                        <span>{value as string}</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+        <PersonalInfoCard
+          info={employeeInfo}
+          editMode={editMode}
+          onEdit={handleEdit}
+          onSave={handleSave}
+          isEmailEditable={false}
+        />
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Specializations</CardTitle>
-              <Button variant="ghost" size="icon" onClick={editMode ? handleSave : handleEdit}>
-                {editMode ? <Save className="h-4 w-4" /> : <Pen className="h-4 w-4" />}
-              </Button>
+            <CardHeader className="flex flex-row items-center justify-between pb-4 pb-4 mb-2 bg-gray-100">
+            <CardTitle>Specializations</CardTitle>
             </CardHeader>
             <CardContent>
-              {loadingSpecializations ? (
+              {loading.specializations ? (
                 <p>Loading specializations...</p>
-              ) : editMode ? (
-                <div>
-                  <Select onValueChange={handleSpecializationChange}>
-                    <SelectTrigger className="w-full rounded-xl bg-white">
-                      <SelectValue placeholder="Select a specialization" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {allSpecializations.map((spec) => (
-                        <SelectItem className="rounded-xl" key={spec} value={spec}>
-                          {spec}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {specializations.map((spec) => (
-                      <div key={spec.specialization} className="flex items-center bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                        <span>{spec.specialization}</span>
-                        <button onClick={() => handleDeleteSpecialization(spec.specialization)} className="ml-2 text-red-500">Delete</button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {specializations.map((spec) => (
-                    <span key={spec.specialization} className="bg-rose-100 text-rose-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                      {spec.specialization}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Appointments Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Appointments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loadingAppointments ? (
-                <p>Loading appointments...</p>
               ) : error ? (
                 <p className="text-red-500">{error}</p>
-              ) : appointments.length > 0 ? (
-                <ul className="space-y-2">
-                  {appointments.map((appointment, index) => (
-                    <li key={index} className="flex justify-between">
-                      <span>{appointment.scheduledTime}</span>
-                      <span>{appointment.serviceId}</span>
-                    </li>
-                  ))}
-                </ul>
               ) : (
-                <p className="text-gray-500">No upcoming appointments</p>
+                <div>
+                  {specializations.map((spec) => (
+                    <Card className="grid mx:grid-rows-2 mx:grid-cols-2 mb-2 shadow-sm">
+                   <div className="rounded-xl bg-gray-50 border text-gray-800">
+                   <nav className="flex flex-row-2 p-1">
+                     <div className="items-center rounded-xl">
+                     <CardHeader className="px-2 py-2">
+                      <CardTitle>
+                      <span className="text-md p-1" key={spec.specialization}>
+                      {spec.specialization?.charAt(0).toUpperCase() + spec.specialization?.slice(1).toLowerCase()}
+                    </span>
+                    </CardTitle>
+                    </CardHeader>
+                    <div>
+                      <CardContent className="py-3">
+                      <ul className="text-sm text-gray-800 space-y-1">
+                        {spec.services && spec.services.length > 0 ? (
+                          spec.services.map((service) => (
+                            <li
+                              key={service.id}
+                              className="flex items-center rounded-lg text-gray-700 text-sm font-medium"
+                            >
+                              <span className="truncate">{service.name}</span>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="italic text-gray-500">No services available</li>
+                        )}
+                      </ul>
+                      </CardContent>
+                      </div>
+                     </div>
+                   </nav>
+                 </div>
+                 </Card>
+                  ))}
+              </div>
               )}
             </CardContent>
           </Card>
-
-          <Card className="flex flex-col justify-center items-center p-6 bg-gradient-to-br from-rose-400 to-rose-600 text-white">
-             <calendar-clock className="w-16 h-16 mb-4" />
-            <h3 className="text-xl font-bold mb-2">Google Calendar</h3>
-            <p className="text-center mb-4">Sync your work schedule with Google Calendar</p>
-            <Button 
-              variant="secondary" 
-              className="bg-white text-rose-600 rounded-xl hover:bg-rose-100"
-              onClick={() => window.open('https://calendar.google.com', '_blank')}
-            >
-              Go to My Google Calendar
-            </Button>
-          </Card>
-
-          {/* Work Schedule Placeholder Card */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Work Schedule</CardTitle>
-            </CardHeader>
+         <AppointmentCard title="Upcoming Appointments" appointments={appointments} loading={loading.appointments} error={error} filterStatuses={['CONFIRMED', 'PENDING']}/>
+         <AppointmentCard title="Past Appointments" appointments={appointments} loading={loading.appointments} error={error} filterStatuses={['COMPLETED', 'CANCELLED']}/>
+         <EmployeeScheduleCard employeeId={employeeInfo.id} schedules={schedules}></EmployeeScheduleCard>
+         <SalonScheduleView schedule={salonSchedules} />
+         <Card className="overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 pb-2 mb-2 bg-gray-100">
+              <CardTitle>
+              <div className="flex items-center">
+                <img className="mr-2 w-6 h-6 " src="/src/assets/google-calendar.png"></img>
+                <h3 className="font-bold">Google Calendar</h3>
+              </div>
+              </CardTitle>
+               </CardHeader>
             <CardContent>
-              <p className="text-gray-500">Work schedule information will be displayed here.</p>
+              <p className="text-gray-800 text-sm mb-4">Sync your work schedule with Google Calendar for easy management and access.</p>
+              <Button 
+                variant="outline"
+                className="justify-center rounded-xl text-white bg-rose-500 shadow border-non hover:bg-rose-600 hover:text-white"
+                onClick={() => window.open('https://calendar.google.com', '_blank')}
+              >
+                Go to My Google Calendar
+              </Button>
             </CardContent>
-          </Card>
-        </div>
+          </Card>        
+          </div>
       </div>
     </section>
   );

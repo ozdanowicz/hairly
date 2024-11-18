@@ -47,16 +47,29 @@ export function RegisterRoleSelectionComponent() {
       navigate('/login');
     }
   }, [token, navigate, setToken]);
-
-  return (
-    <div>
-      {/* Role selection UI here */}
-    </div>
-  );
-
-
-
-
+  const handleContinue = () => {
+    if (selectedRole && token) {
+      fetch(`http://localhost:8080/api/v1/auth/add-role?role=${selectedRole}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+        .then(response => {
+          if (response.ok) {
+            navigate('/profile');
+          } else {
+            console.error('Failed to set role');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    } else {
+      console.error('No role selected or user not fetched');
+    }
+  };
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center items-center p-4">
       <Card className="w-full max-w-md">

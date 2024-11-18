@@ -3,9 +3,10 @@ import axios from 'axios';
 export const BASE_URL = 'http://localhost:8080/api/v1';
 
 export interface Location {
+  id: number;
   street: string;
   buildingNumber: string;
-  apartmentNumber?: string;
+  apartmentNumber: string;
   latitude?: number;
   longitude?: number;
   city: string;
@@ -22,32 +23,60 @@ export interface SalonImages {
 }
 
 export interface Service {
+  id: number;
   name: string;
   description?: string;
   price: number;
   durationMinutes: number;
 }
 
-export interface SpecializationEnum {
-  HAIRDRESSER: 'HAIRDRESSER',
-  BARBER: 'BARBER',
-  STYLIST: 'STYLIST',
-  COLORIST: 'COLORIST',
-  MAKEUP_ARTIST: 'MAKEUP_ARTIST',
+export interface EmployeeAppointment {
+  scheduledTime: string;
+  scheduledDate: string;
+  status: string;
+  createdAt: string;
+  clientFullName: string;
+  serviceName: string;
+  servicePrice: number;
+  serviceDurationMinutes: number;
+}
+
+export enum SpecializationEnum {
+  HAIRDRESSER= 'HAIRDRESSER',
+  BARBER= 'BARBER',
+  STYLIST= 'STYLIST',
+  COLORIST= 'COLORIST',
+}
+
+export enum DayOfWeek {
+  MONDAY='MONDAY',
+  TUESDAY= 'TUESDAY',
+  WEDNESDAY= 'WEDNESDAY',
+  THURSDAY= 'THURSDAY',
+  FRIDAY= 'FRIDAY',
+  SATURDAY= 'SATURDAY',
+  SUNDAY= 'SUNDAY',
 }
 
 export interface Specialization {
   id: number;
-  employeeId: number;
-  name: SpecializationEnum;
+  salonId: number;
+  specialization: SpecializationEnum;
+  services: Service[];
 }
 
 export interface Schedule {
   id: number;
   employeeId: number;
+  salonId: number;
   dayOfWeek: string;
   openingTime: string;
   closingTime: string;
+  type: ScheduleType;
+}
+export enum ScheduleType {
+  SALON= 'SALON',
+  EMPLOYEE= 'EMPLOYEE',
 }
 
 export interface Employee {
@@ -88,8 +117,16 @@ export interface Appointment {
   employeeId: number;
   serviceId: number;
   scheduledTime: string;
+  scheduledDate: string;
   status: string;
   createdAt: string;
+}
+
+export enum AppointmentStatus {
+  PENDING= 'PENDING',
+  CONFIRMED= 'CONFIRMED',
+  CANCELLED= 'CANCELLED',
+  COMPLETED= 'COMPLETED',
 }
 
 export interface SalonSearchCriteria {
@@ -115,16 +152,14 @@ export interface User {
   email: string;
   phone: string;
   role: Role;
-  appointments_as_client: Appointment[];
-  appointments_as_employee: Appointment[];
+  // appointments_as_client: Appointment[];
+  // appointments_as_employee: Appointment[];
   createdAt: string;
 }
 
-export interface SalonRequest {
+export interface SalonInfoRequest {
   name: string;
   description: string;
-  location: Location;
-  services: Service[];
 }
 
 export interface Salon {
@@ -138,6 +173,7 @@ export interface Salon {
   priceRange: [string, string];
   averageRating: number;
   reviewsCount: number;
+  specializations: Specialization[];
 }
 
 export const createSalon = async (salonData: SalonRequest): Promise<SalonRequest> => {
@@ -212,15 +248,6 @@ export const fetchEmployeeDetails = async (employeeId: number): Promise<Employee
   }
 };
 
-export const fetchEmployeesBySalon = async (salonId: number): Promise<Employee[]> => {
-  try {
-    const response = await axios.get(`${BASE_URL}/salon/${salonId}/employees`);
-    return response.data; 
-  } catch (error) {
-    console.error('Error fetching employees:', error);
-    throw error;
-  }
-};
 
 export const fetchReviews = async (salonId: number): Promise<Review[]> => {
   try {
@@ -253,15 +280,25 @@ export const fetchOwnerSalon = async (ownerId: number): Promise<Salon> => {
 };
 
 
-export const fetchSalonSchedule = async (salonId: number): Promise<Schedule[]> =>{
+export const fetchEmployeeByUser = async (userId: number): Promise<Employee> => {
   try {
-    const response = await axios.get(`${BASE_URL}/salon/${salonId}/schedule`);
+    const response = await axios.get(`${BASE_URL}/employee/user/${userId}`);
     return response.data;
   } catch (error) {
-    console.error("Failed to load salon schedule:", error);
-    throw error; 
+    console.error("Failed to load employee by user:", error);
+    throw error;
   }
-};
+}
+
+export const fetchEmployeeSalon = async(employeeId: number): Promise<number> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/employee/${employeeId}/salon`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to load employee salon:", error);
+    throw error;
+  }
+}
 
 export async function fetchUserData(token: string): Promise<User> {
   if (!token) throw new Error('No authentication token found');
@@ -282,13 +319,135 @@ export async function fetchUserData(token: string): Promise<User> {
   return userData;
 }
 
+// export const fetchSpecializationEnums = async (): Promise<SpecializationEnum[]> => {
+//   const response = await axios.get<SpecializationEnum[]>(`${BASE_URL}/specialization/enums`);
+//   return response.data;
+// };
+
+export const fetchSalonSpecializations = async (salonId: number): Promise<Specialization[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/salon/${salonId}/specializations`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching salon specializations:', error);
+    throw error;
+  }
+}
+
+// Assign specialization to an employee
+export const assignSpecializationToEmployee = async (employeeId: number, specializationIds: number[] = []) => {
+  try {
+    console.log("Assigning specializations to employee:", specializationIds);
+    await axios.put(`${BASE_URL}/employee/${employeeId}/assign`, specializationIds); // Directly send the array
+  } catch (error) {
+    console.error("Error assigning specializations to employee:", error);
+    throw error;
+  }
+};
+
+export const addEmployeeToSalon = async (email: string, salonId: number): Promise<Employee> => {
+  try {
+    const response = await axios.post(`${BASE_URL}/employee/salon/${salonId}/email/${email}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to add employee to salon:", error);
+    throw error;
+  }
+}
+
+export const doesUserWithEmailExists = async (email: string): Promise<string> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/employee/email/${email}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to load employee by email:", error);
+    throw error;
+  }
+}
+
+export const deleteEmployeeFromSalon = async (employeeId: number): Promise<void> => {  
+  try {
+    await axios.delete(`${BASE_URL}/employee/${employeeId}`);
+  } catch (error) {
+    console.error("Failed to delete employee:", error);
+    throw error;
+  }
+}
 
 
+export const removeSpecializationFromEmployee = async (employeeId: number, specializationId: number) => { 
+  try {
+    await axios.delete(`${BASE_URL}/employee/${employeeId}/specialization/${specializationId}`);
+  } catch (error) {
+    console.error('Error removing specialization from employee:', error);
+    throw error;
+  }
+}
 
-export const fetchClientAppointments = async (clientId: number): Promise<Appointment[]> =>{
+export const createSalonSpecialization = async (salonId: number, specialization: SpecializationEnum, serviceIds: number[] = []) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/specialization/salon/${salonId}`, { specialization, serviceIds });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating salon specialization:', error);
+    throw error;
+  }
+}
+
+export const updateSpecialization = async(specialiationId: number, specialization: SpecializationEnum, serviceIds: number[] = []): Promise<Specialization> => {
+  try {
+    console.log('Updating specialization:', { specialization, serviceIds });
+     const response = await axios.put(`${BASE_URL}/specialization/${specialiationId}`, { specialization, serviceIds });
+     return response.data;
+  } catch (error) {
+    console.error('Error updating salon specialization:', error);
+    throw error;
+  }
+}
+
+export const deleteSalonSpecialization = async ( specializationId: number) => {
+  try {
+    await axios.delete(`${BASE_URL}/specialization/${specializationId}`);
+  } catch (error) {
+    console.error('Error deleting salon specialization:', error);
+    throw error;
+  }
+}
+
+export interface ClientAppointment {
+  id: number;
+  salonName: string;
+  serviceName: string;
+  servicePrice: number;
+  serviceDurationMinutes: number;
+  scheduledTime: string;
+  scheduledDate: string;
+  status: string;
+  createdAt: string;
+  employeeFullName: string;
+  employeeNumber: string;
+  reviewId?: number;
+}
+
+export interface ReviewRequest {
+  rating: number;
+  comment: string;
+}
+
+export const submitReview = async(appointmentId: number, clientId: number, request: ReviewRequest): Promise<Review> => {
+  try {
+    const response = await axios.post(`${BASE_URL}/review/${appointmentId}/client/${clientId}`, request);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to submit review:", error);
+    throw error;
+  }
+}
+
+export const fetchClientAppointments = async (clientId: number): Promise<ClientAppointment[]> =>{
   try {
     const response = await axios.get(`${BASE_URL}/client/${clientId}/appointments`);
-    return response.data; // Return the appointments data
+    return response.data; 
   } catch (error) {
     console.error("Failed to load client appointments:", error);
     throw error; 
@@ -305,9 +464,9 @@ export const fetchClientReviews = async (clientId: number): Promise<Review[]> =>
   }
 };
 
-export const fetchEmployeeAppointments = async (employeeId: number): Promise<Appointment[]> => {
+export const fetchEmployeeAppointments = async (employeeId: number): Promise<EmployeeAppointment[]> => {
   try {
-    const response = await axios.get(`${BASE_URL}/employee/${employeeId}/appointments`);
+    const response = await axios.get(`${BASE_URL}/appointment/employee/${employeeId}`);
     return response.data;
   } catch (error) {
     console.error("Failed to load employee appointments:", error);
@@ -315,9 +474,9 @@ export const fetchEmployeeAppointments = async (employeeId: number): Promise<App
   }
 };
 
-export const fetchEmployeeSpecializations = async (employeeId: number): Promise<Specialization[]> => {
+export const fetchEmployeeSpecializations = async (userId: number): Promise<Specialization[]> => {
   try {
-    const response = await axios.get(`${BASE_URL}/employee/${employeeId}/specializations`);
+    const response = await axios.get(`${BASE_URL}/employee/${userId}/specializations`);
     return response.data;
   } catch (error) {
     console.error("Failed to load employee specializations:", error);
@@ -348,6 +507,63 @@ export const updateEmployeeSpecializations = async (employeeId: number, speciali
   }
 };
 
+export interface ScheduleRequest {
+  dayOfWeek: DayOfWeek;
+  openingTime: string;
+  closingTime: string;
+  type: ScheduleType;
+}
+export const fetchEmployeeSchedule = async (employeeId: number): Promise<Schedule[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/employee/${employeeId}/schedule`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to load employee schedule:", error);
+    throw error; 
+  }
+};
+
+
+export const updateSchedule = async (scheduleId: number, schedule: ScheduleRequest): Promise<ScheduleRequest> => {
+  try {
+    const response = await axios.put(`${BASE_URL}/schedule/${scheduleId}`, schedule);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update schedule:", error);
+    throw error;
+  }
+}
+
+export const addEmployeeSchedule = async (employeeId: number, schedule: ScheduleRequest): Promise<ScheduleRequest> => {
+  try {
+    const response = await axios.post(`${BASE_URL}/schedule/employee/${employeeId}`, schedule);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to add employee schedule:", error);
+    throw error;
+  }
+};
+
+
+export const addSalonSchedule = async (salonId: string, schedule: ScheduleRequest): Promise<ScheduleRequest> => {
+  try {
+    const response = await axios.post(`${BASE_URL}/schedule/${salonId}`, schedule);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to add schedule:", error);
+    throw error;
+  }
+}
+
+export const deleteSchedule = async (scheduleId: number): Promise<void> => {
+  try {
+    await axios.delete(`${BASE_URL}/schedule/${scheduleId}`);
+  } catch (error) {
+    console.error("Failed to delete schedule:", error);
+    throw error;
+  }
+}
+
 export const loadSpecializations = async () => {
   try {
     const response = await fetch(`${BASE_URL}/specialization/enums`);
@@ -371,50 +587,95 @@ export const fetchSalonsByLocation = async (latitude: number, longitude: number,
   }
 };
 
-export const updateSalonLocation = async (salonId: number, location: CreateLocationRequest): Promise<void> => {
+export const fetchLocation = async (salonId: number): Promise<Location> => {  
   try {
-    await axios.put(`${BASE_URL}/location/${salonId}/location`, location);
+    const response = await axios.get(`${BASE_URL}/location/${salonId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to load salon location:", error);
+    throw error;
+  }
+}
+
+export const updateSalonLocation = async (locationId: string, location: Location): Promise<Location> => {
+  try {
+    const response= await axios.put(`${BASE_URL}/location/${locationId}`, location);
+    return response.data;
   } catch (error) {
     console.error("Failed to update salon location:", error);
     throw error;
   }
 };
 
-interface CreateLocationRequest {
-  street: string;
-  buildingNumber: string;
-  apartmentNumber?: string;
-  latitude: number;
-  longitude: number;
-  city: string;
-  province: string;
-  zipCode: string;
+export const createSalonLocation = async (salonId: string, location: Location): Promise<Location> => {
+  try {
+    const response = await axios.post(`${BASE_URL}/location/${salonId}`, location);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to create salon location:", error);
+    throw error;
+  }
 }
 
-interface ServiceTypeRequest {
-  id?: number; // Existing services will have an ID; new ones may not
+export const deleteSalonLocation = async (locationId: string): Promise<void> => {
+  try {
+    await axios.delete(`${BASE_URL}/location/${locationId}`);
+  } catch (error) {
+    console.error("Failed to delete salon location:", error);
+    throw error;
+  }
+}
+
+export interface ServiceRequest {
   name: string;
   description: string;
   price: number;
   durationMinutes: number;
 }
 
-export const updateSalonServices = async (salonId: number, services: ServiceTypeRequest[]): Promise<ServiceTypeRequest[]> => {
+
+export const addNewService = async (salonId: string, service: ServiceRequest): Promise<ServiceRequest> => {
   try {
-    const servicesPayload = services.map(service => ({
-      id: service.id, // Only include this if it’s an existing service; new services may not have an ID
-      name: service.name,
-      description: service.description,
-      price: service.price,
-      durationMinutes: service.durationMinutes,
-    }));
-    const response = await axios.put(`${BASE_URL}/salon/${salonId}/services`, { services: servicesPayload });
+    console.log('Adding service:', service);
+    const response = await axios.post(`${BASE_URL}/salon_service/${salonId}`, service);
+    return response.data; 
+  } catch (error) {
+    console.error("Failed to add new service:", error);
+    throw error;
+  }
+}
+
+
+export const deleteService = async (serviceId: number): Promise<void> => {
+  try {
+    await axios.delete(`${BASE_URL}/salon_service/${serviceId}`);
+  } catch (error) {
+    console.error("Failed to delete service:", error);
+    throw error;
+  }
+}
+
+
+export const updateService = async (serviceId: number, service: Service): Promise<Service> => {
+  try {
+    const response = await axios.put(`${BASE_URL}/salon_service/${serviceId}`, service);
     return response.data;
   } catch (error) {
     console.error("Failed to update salon services:", error);
     throw error;
   }
 };
+
+export const updateSalonInfo = async (salonId: number, SalonRequest: Partial<Salon>): Promise<Salon> => {
+  try {
+    const response = await axios.put(`${BASE_URL}/salon/${salonId}`, SalonRequest);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating salon info:', error);
+    throw error;
+  }
+};
+
 
 export const fetchSalonsByCriteria = async (searchQuery: SalonSearchCriteria) => {
   const params = new URLSearchParams();
@@ -453,3 +714,13 @@ export const fetchSalonsByName = async (salonName: string) => {
   }
   return response.json();
 };
+
+
+export const deleteEmployee = async (employeeId: number): Promise<void> => {
+  try {
+    await axios.delete(`${BASE_URL}/employee/${employeeId}`);
+  } catch (error) {
+    console.error("Failed to delete employee:", error);
+    throw error;
+  }
+}

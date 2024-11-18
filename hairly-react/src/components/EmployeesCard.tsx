@@ -1,76 +1,302 @@
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmployeeDetails, fetchEmployeeDetails, fetchEmployeesBySalon } from "@/apiService";
-import { useEffect, useState } from "react";
-import defaultProfile from '@/assets/defaultProfile.png';
+import { Button } from "@/components/ui/button";
+import { Edit, Save, X, Trash, Plus } from "lucide-react";
+import defaultProfile from "@/assets/defaultProfile.png";
+import {
+  EmployeeDetails,
+  fetchEmployeeDetails,
+  assignSpecializationToEmployee,
+  deleteEmployeeFromSalon,
+  Specialization,
+  addEmployeeToSalon,
+  doesUserWithEmailExists, 
+} from "@/apiService";
+import {fetchEmployeesBySalon} from "../salonService.ts";
 
-const EmployeesCard: React.FC<{ salonId: number }> = ({ salonId }) => {
+const EmployeesCard: React.FC<{
+  salonId: number;
+  isOwnerDashboard: boolean;
+  specializations: Specialization[];
+}> = ({ salonId, isOwnerDashboard, specializations }) => {
   const [employees, setEmployees] = useState<EmployeeDetails[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [editingEmployeeId, setEditingEmployeeId] = useState<number | null>(null);
+  const [selectedSpecializationIds, setSelectedSpecializationIds] = useState<number[]>([]);
+  const [newEmployeeEmail, setNewEmployeeEmail] = useState("");
+  const [isAddEmployeeModalOpen, setIsAddEmployeeModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const loadEmployees = async () => {
       try {
         const employeeList = await fetchEmployeesBySalon(salonId);
-        if (!employeeList || !employeeList.length) {
-          setEmployees([]);  
-        } else {
-          const detailedEmployees = await Promise.all(
-            employeeList.map(async (employee) => {
-              const detailedEmployee = await fetchEmployeeDetails(employee.id);
-              return detailedEmployee;
-            })
-          );
-          setEmployees(detailedEmployees);
-        }
+        const detailedEmployees = await Promise.all(
+          employeeList.map(async (employee) => {
+            const detailedEmployee = await fetchEmployeeDetails(employee.id);
+            return detailedEmployee;
+          })
+        );
+        setEmployees(detailedEmployees);
       } catch (err) {
-        setError("Error fetching employees");
-        console.error(err);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching employees:", err);
+        toast.error("Failed to load employees.");
       }
     };
-
     loadEmployees();
   }, [salonId]);
 
+  function capitalizeFirstLetter(text: string): string {
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  }
+  const handleAddEmployee = async () => {
+    if (!newEmployeeEmail) {
+      toast.error("Please provide an email.");
+      return;
+    }
+
+    try {
+      const fetchedEmployee = await doesUserWithEmailExists(newEmployeeEmail);
+      console.log(fetchedEmployee);
+      if (!fetchedEmployee) {
+        toast.error("Employee with this email does not exist.");
+        return;
+      }
+
+      console.log(salonId)
+      await addEmployeeToSalon(fetchedEmployee, salonId);
+
+      const updatedEmployees = await fetchEmployeesBySalon(salonId);
+      const detailedEmployees = await Promise.all(
+        updatedEmployees.map(async (employee) => {
+          const detailedEmployee = await fetchEmployeeDetails(employee.id);
+          return detailedEmployee;
+        })
+      );
+      setEmployees(detailedEmployees);
+
+      toast.success("Employee added successfully!");
+      setIsAddEmployeeModalOpen(false);
+      setNewEmployeeEmail("");
+    } catch (error) {
+      console.error("Error adding employee:", error);
+      toast.error("Employee with that email does not exist.");
+    }
+  };
+
+  const handleAssignSpecializations = async (employeeId: number) => {
+    try {
+      await assignSpecializationToEmployee(employeeId, selectedSpecializationIds);
+      setEmployees((prevEmployees) =>
+        prevEmployees.map((emp) =>
+          emp.id === employeeId
+            ? {
+                ...emp,
+                specializations: specializations.filter((spec) =>
+                  selectedSpecializationIds.includes(spec.id)
+                ),
+              }
+            : emp
+        )
+      );
+      toast.success("Specializations updated successfully!");
+      setEditingEmployeeId(null);
+      setSelectedSpecializationIds([]);
+    } catch (error) {
+      console.error("Error assigning specializations:", error);
+      toast.error("Failed to assign specializations.");
+    }
+  };
+
+  const toggleSpecializationSelection = (specializationId: number) => {
+    setSelectedSpecializationIds((prev) =>
+      prev.includes(specializationId)
+        ? prev.filter((id) => id !== specializationId)
+        : [...prev, specializationId]
+    );
+  };
+
+  const handleDeleteEmployee = async (employeeId: number) => {
+    try {
+      setDeleteModalOpen(true);
+      await deleteEmployeeFromSalon(employeeId);
+      setEmployees((prevEmployees) =>
+        prevEmployees.filter((employee) => employee.id !== employeeId)
+      );
+      toast.success("Employee deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+      toast.error("Failed to delete employee.");
+    } finally {
+      setDeleteModalOpen(false);
+    }
+  };
+
   return (
-    <>
-      <Card>
-        <CardHeader>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pt-4 pb-4 mb-3 bg-gray-100 rounded-xl">
+        {isOwnerDashboard ? (
+          <>
+            <CardTitle>Salon Employees</CardTitle>
+            <Button
+              className="rounded-xl border-none bg-white"
+              onClick={() => setIsAddEmployeeModalOpen(true)}
+              variant="outline"
+              size="sm"
+            >
+              <Plus className="w-4 h-4" /> Add
+            </Button>
+          </>
+        ) : (
           <CardTitle>Our Team</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {loading && <div>Loading employees...</div>}
-            {error && <div>Error: {error}</div>}
-            {!loading && employees.length === 0 && !error && (
-              <div>Employees are not set yet</div>
-            )}
-            {!loading && employees.length > 0 && (
-              employees.map((employee: EmployeeDetails) => (
-                <div key={employee.id} className="flex items-center space-x-4">
-                  <Avatar>
-                    <AvatarImage src={employee.profilePicture || defaultProfile} alt={employee.name} />
-                    <AvatarFallback>{employee.name} {employee.surname}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{employee.name} {employee.surname}</p>
-                    <p className="text-sm text-gray-500">
-                      {employee.specializations?.length > 0
-                        ? employee.specializations.map((spec) => spec.name).join(', ')
-                        : 'Stylist'
-                      }
+        )}
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {employees.map((employee) => (
+            <div key={employee.id} className="flex items-center space-x-4 border rounded-xl p-3">
+              <Avatar>
+                <AvatarImage
+                  src={employee.profilePicture || defaultProfile}
+                  alt={employee.name}
+                />
+                <AvatarFallback>{employee.name}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col w-full space-y-1">
+                <p className="font-medium">{employee.name}</p>
+                <p className="text-sm text-gray-500 mb-4">{employee.email}</p>
+                <div className="flex flex-wrap gap-2">
+                  {employee.specializations.map((spec) => (
+                    <p key={spec.id} className="mt-2 rounded-xl bg-gray-50 border border-gray-300 pl-1.5 pr-1.5 pt-1 pb-1 text-sm text-gray-600">
+                      {capitalizeFirstLetter(spec.specialization.toLowerCase())}
                     </p>
-                  </div>
+                  ))}
                 </div>
-              ))
-            )}
+                {editingEmployeeId === employee.id && isOwnerDashboard ? (
+                  <>
+                    <div className="flex flex-col space-y-2 mt-4">
+                      {specializations.map((spec) => (
+                        <label key={spec.id} className="flex items-center space-x-2 text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            checked={selectedSpecializationIds.includes(spec.id)}
+                            onChange={() => toggleSpecializationSelection(spec.id)}
+                          />
+                          <span>{capitalizeFirstLetter(spec.specialization.toLowerCase())}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <div className="flex space-x-2 mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAssignSpecializations(employee.id)}
+                        className="rounded-xl border-none"
+                      >
+                        <Save className="w-4 h-4" /> Save
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingEmployeeId(null)}
+                        className="ml-2 rounded-xl bg-gray-100"
+                      >
+                        <X className="w-4 h-4" /> Cancel
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  isOwnerDashboard && (
+                    <div className="flex justify-end mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-xl border-none shadow mr-2"
+                        onClick={() => {
+                          setEditingEmployeeId(employee.id);
+                          setSelectedSpecializationIds(
+                            employee.specializations.map((spec) => spec.id)
+                          );
+                        }}
+                      >
+                        <Edit className="w-4 h-4" /> Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-xl border-none shadow bg-rose-700 text-white"
+                        onClick={() => handleDeleteEmployee(employee.id)}
+                      >
+                        <Trash className="w-4 h-4" /> Delete
+                      </Button>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+      {/* <Dialog open={isDeleteModalOpen} onOpenChange={(open) => setDeleteModalOpen(open)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. Are you sure you want to permanently delete this employee?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteModalOpen(false)} // Close the dialog without deletion
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteEmployee} // Confirm and delete employee
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog> */}
+
+      {/* Modal for adding employee */}
+      {isAddEmployeeModalOpen && (
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
+          <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
+            <h2 className="text-xl font-medium mb-4">Add New Employee</h2>
+            <input
+              type="email"
+              placeholder="Employee Email"
+              value={newEmployeeEmail}
+              onChange={(e) => setNewEmployeeEmail(e.target.value)}
+              className="w-full mb-2 p-2 border border-gray-300 rounded"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                className="rounded-xl bg-gray-100"
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsAddEmployeeModalOpen(false)} // Close modal
+              >
+                Cancel
+              </Button>
+              <Button
+                className="rounded-xl border-none shadow"
+                variant="outline"
+                size="sm"
+                onClick={handleAddEmployee}
+              >
+                Add Employee
+              </Button>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </>
+        </div>
+      )}
+    </Card>
   );
 };
 

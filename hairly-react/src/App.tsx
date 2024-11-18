@@ -12,16 +12,17 @@ import SalonRegistrationPage from './pages/SalonRegistrationPage';
 import SalonDetails from './components/SalonDetails';
 import AfterLoginRedirect from '././components/AfterLoginRedirection.tsx';
 import ProfilePage from './pages/ProfilePage.tsx';
-import ClientDashboard from './components/ClientDashboard.tsx';
 import EmployeeProfile from './components/EmployeeProfile.tsx';
 import OAuthCallback from './components/OAuthCallback.tsx';
 import ReviewFormComponent from './components/ReviewForm.tsx';
 import RegisterSalon from './components/RegisterSalon.tsx';
 import AddFreeDates from './components/FreeDatesForm.tsx';
-import OwnerDashboardEdit from './components/OwnerDashboardEdit.tsx';
+import { ToastContainer} from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
+    
     <Route element={<MainLayout />}>
       <Route path="/" element={<HomePage />} />
       <Route path='/offerts' element={<OffertsPage />} />
@@ -38,13 +39,17 @@ const router = createBrowserRouter(
       <Route path='/review-form' element={<ReviewFormComponent />} />
       <Route path='/register-salon' element={<RegisterSalon/>} />
       <Route path='/add-dates' element={<AddFreeDates/>} />
-      <Route path='profile/owner-edit-dashboard' element={<OwnerDashboardEdit />} />
     </Route>
   )
 );
 
 const App: React.FC = () => {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+  <RouterProvider router={router} />
+  <ToastContainer position="top-right" autoClose={2000} />
+  </>
+  )
 };
 
 export default App;
