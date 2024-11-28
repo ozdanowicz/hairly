@@ -1,295 +1,186 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { MapPin, Edit, Save, X, Trash, Plus } from "lucide-react";
+import { MapPin, Save, X, Trash, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Location, updateSalonLocation, deleteSalonLocation, createSalonLocation } from "@/apiService";
+import { Location, createSalonLocation, deleteSalonLocation, fetchLocation } from "@/apiService"; // Assuming this exists
 import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
-
+import { StandaloneSearchBox, GoogleMap, Marker } from "@react-google-maps/api";
 
 interface LocationCardProps {
-  location: Location | null;
-  salonId: string;
-  showEditButton?: boolean;
+  salonId: number;
+  isOwner: boolean; // New prop to check if the user is the owner
 }
-const LocationCard: React.FC<LocationCardProps> = ({ salonId,location, showEditButton = false }) => {
-  const [isEditingLocation, setIsEditingLocation] = useState(false);
-  const [addLocation, setAddLocation] = useState(false);
-  const [editableLocation, setEditableLocation] = useState<Location | null>(location);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-
-  const validateLocation = () => {
-    const errors: any = {
-      city: "",
-      street: "",
-      buildingNumber: "",
-    };
-
-    if (!editableLocation?.city || editableLocation.city.trim() === "") {
-      errors.city = "City is required.";
-    }
-    if (!editableLocation?.street || editableLocation.street.trim() === "") {
-      errors.street = "Street is required.";
-    }
-    if (!editableLocation?.buildingNumber || editableLocation.buildingNumber.trim() === "") {
-      errors.buildingNumber = "Building number is required.";
-    }
-
-    return errors;
-  };
+const LocationCard: React.FC<LocationCardProps> = ({ salonId, isOwner }) => {
+  const [isAdding, setIsAdding] = useState(false);
+  const [location, setLocation] = useState<Location | null>(null);
+  const [newLocation, setNewLocation] = useState<Location | null>(null);
+  const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null);
+  const [markerPosition, setMarkerPosition] = useState({ lat: 0, lng: 0 });
+  const [mapCenter, setMapCenter] = useState({ lat: 0, lng: 0 });
 
   useEffect(() => {
-    if (location && !addLocation) {
-      setEditableLocation(location);
-    }
+    const fetchSalonLocation = async () => {
+      try {
+        const salonLocation = await fetchLocation(salonId);
+        setLocation(salonLocation);
+        if (salonLocation) {
+          setMarkerPosition({ lat: salonLocation.latitude, lng: salonLocation.longitude });
+          setMapCenter({ lat: salonLocation.latitude, lng: salonLocation.longitude });
+        }
+      } catch (error) {
+        console.error("Error fetching location:", error);
+      }
+    };
 
-  }, [location, addLocation]);
+    fetchSalonLocation();
+  }, [salonId]);
 
-  const handleInputChange = (field: keyof Location, value: string) => {
-    if (editableLocation) {
-      setEditableLocation({ ...editableLocation, [field]: value });
-    }
+  const onPlacesChanged = () => {
+    const places = searchBox?.getPlaces();
+    if (!places || places.length === 0) return;
+    const place = places[0];
+    const parsedData = parseGoogleMapsResponse(place);
+
+    setNewLocation({
+      city: parsedData.city,
+      street: parsedData.street,
+      buildingNumber: parsedData.buildingNumber,
+      apartmentNumber: parsedData.apartmentNumber,
+      latitude: parsedData.latitude,
+      longitude: parsedData.longitude,
+      zipCode: parsedData.zipCode,
+    });
+
+    setMarkerPosition({
+      lat: parsedData.latitude,
+      lng: parsedData.longitude,
+    });
+
+    setMapCenter({
+      lat: parsedData.latitude,
+      lng: parsedData.longitude,
+    });
+  };
+
+  const parseGoogleMapsResponse = (place: google.maps.places.PlaceResult) => {
+    const addressComponents = place.address_components;
+    let city = "", street = "", zipCode = "", country = "", buildingNumber = "", apartmentNumber = "";
+
+    addressComponents?.forEach((component) => {
+      if (component.types.includes("locality")) city = component.long_name;
+      if (component.types.includes("postal_code")) zipCode = component.long_name;
+      if (component.types.includes("street_number")) buildingNumber = component.long_name;
+      if (component.types.includes("route")) street = component.long_name;
+      if (component.types.includes("apartment")) apartmentNumber = component.long_name;
+    });
+
+    const latitude = place.geometry?.location?.lat() ?? 0;
+    const longitude = place.geometry?.location?.lng() ?? 0;
+
+    return { street, city, zipCode, country, buildingNumber, apartmentNumber, latitude, longitude };
+  };
+
+  const validateLocation = () => {
+    if (!newLocation?.city || newLocation.city.trim() === "") return "City is required";
+    if (!newLocation?.street || newLocation.street.trim() === "") return "Street is required";
+    if (!newLocation?.buildingNumber || newLocation.buildingNumber.trim() === "") return "Building number is required";
+    return null;
   };
 
   const handleSaveLocation = async () => {
-    const errors = validateLocation();
-    if (Object.values(errors).some((error) => error !== "")) {
-      setValidationErrors(errors);
-      toast.error(Object.values(errors).join("\n") + "\n");
+    const validationError = validateLocation();
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
-    if (editableLocation?.id && !addLocation) {
-      // Update existing location
-      try {
-        await updateSalonLocation(editableLocation.id, editableLocation);
-        toast.success("Location updated successfully!");
-        setIsEditingLocation(false);
-      } catch (error) {
-        toast.error("Failed to update location.");
-      }
-    } else if (addLocation) {
-      try {
-        const newLocation = await createSalonLocation(salonId,editableLocation);
-        setEditableLocation(newLocation);
-        toast.success("New location created successfully!");
-        setAddLocation(false);
-        setIsEditingLocation(false);
-      } catch (error) {
-        toast.error("Failed to create new location.");
-      }
+    try {
+      const savedLocation = await createSalonLocation(salonId, newLocation);
+      toast.success("Location added successfully!");
+
+      // Update location and reset newLocation
+      setLocation(savedLocation);
+      setNewLocation(null);
+      setIsAdding(false);
+    } catch (error) {
+      toast.error("Failed to add location");
     }
   };
 
   const handleDeleteLocation = async () => {
-    if (editableLocation && editableLocation.id) {
+    if (location?.id) {
       try {
-        await deleteSalonLocation(editableLocation.id);
-        setEditableLocation(null);
+        await deleteSalonLocation(location.id);
         toast.success("Location deleted successfully!");
+
+        // Clear location state
+        setLocation(null);
+        setMarkerPosition({ lat: 0, lng: 0 });
+        setMapCenter({ lat: 0, lng: 0 });
       } catch (error) {
-        toast.error("Failed to delete location.");
+        toast.error("Failed to delete location");
       }
     }
   };
-  
-  const handleNewLocation = () => {
-    setEditableLocation({} as Location); // Set empty location object
-    setAddLocation(true); // Enable addLocation mode
-    setIsEditingLocation(false);
-  };
 
-return (
-    <>
-    <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pt-4 pb-4 mb-3 bg-gray-100  rounded-xl">
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="w-6 h-6" />
-              Salon Location
-            </CardTitle>
-            {showEditButton && (
-          isEditingLocation ? (
-            <div className="flex gap-2">
-              <Button 
-              className="border-non bg-white rounded-xl" 
-              onClick={handleSaveLocation} 
-              variant="outline" 
-              size="sm">
-                <Save className="w-4 h-4 mr-2" /> Save
-              </Button>
-              <Button 
-              className="border-non bg-white rounded-xl"
-               onClick={() => {
-                setIsEditingLocation(false); 
-                setAddLocation(false);
-                setEditableLocation(location);
-               }} 
-                variant="ghost" 
-                size="sm">
-                <X className="w-4 h-4 mr-2" /> Cancel
-              </Button>
-            </div>
-          ) : (
-            <div className="flex space-x-2">
-            {editableLocation ? (
-              <>
-                <Button
-                  className="border-none bg-rose-700 rounded-xl text-white"
-                  onClick={handleDeleteLocation}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Trash className="w-4 h-4 text-white" /> Delete
-                </Button>
-                <Button className="border-none bg-white rounded-xl" onClick={() => setIsEditingLocation(true)} variant="outline" size="sm">
-                  <Edit className="w-4 h-4 mr-2" /> Edit
-                </Button>
-              </>
-            ) : (
-              <Button className="border-none bg-white rounded-xl" onClick={handleNewLocation} variant="outline" size="sm">
-                <Plus className="w-4 h-4" /> Add
-              </Button>
-            )}
-          </div>
-          )
+  return (
+    <Card className="border-0 shadow-lg rounded-xl bg-white">
+      <CardHeader className="flex justify-between items-center p-4 bg-gray-100 rounded-t-xl">
+        <CardTitle className="flex items-center gap-2">
+          <MapPin className="w-6 h-6" />
+          Salon Location
+        </CardTitle>
+
+        {isOwner && !location && !isAdding && (
+          <Button onClick={() => setIsAdding(true)} variant="outline" size="sm">
+            <Plus className="w-4 h-4 mr-2" /> Add Location
+          </Button>
         )}
-          </CardHeader>
-          <CardContent>
-          {editableLocation && (isEditingLocation || addLocation) ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="font-semibold">City</Label>
-                    <input
-                      className={`w-full p-2 border rounded mb-2 ${validationErrors.city ? 'border-red-500' : ''}`}
-                      value={editableLocation.city || ''}
-                      onChange={(e) => handleInputChange("city", e.target.value)}
-                      placeholder="City"
-                    />
-                    {validationErrors.city && (
-                      <p className="text-red-500 text-sm">{validationErrors.city}</p>
-                    )}
-                  </div>
+      </CardHeader>
 
-                  <div>
-                    <Label className="font-semibold">Street</Label>
-                    <input
-                      className={`w-full p-2 border rounded mb-2 ${validationErrors.street ? 'border-red-500' : ''}`}
-                      value={editableLocation.street || ''}
-                      onChange={(e) => handleInputChange("street", e.target.value)}
-                      placeholder="Street"
-                    />
-                    {validationErrors.street && (
-                      <p className="text-red-500 text-sm">{validationErrors.street}</p>
-                    )}
-                  </div>
+      <CardContent className="space-y-4 p-6">
+        {isAdding && isOwner && (
+          <div>
+            <Label className="font-semibold">Search for Location</Label>
+            <StandaloneSearchBox onLoad={(ref) => setSearchBox(ref)} onPlacesChanged={onPlacesChanged}>
+              <input type="text" placeholder="Search for an address" className="w-full p-2 border rounded-md shadow-sm mb-2" />
+            </StandaloneSearchBox>
+            <GoogleMap mapContainerStyle={{ height: "300px", width: "100%" }} center={mapCenter} zoom={15}>
+              <Marker position={markerPosition} />
+            </GoogleMap>
 
-                  <div>
-                    <Label className="font-semibold">Building number</Label>
-                    <input
-                      className={`w-full p-2 border  rounded mb-2 ${validationErrors.buildingNumber ? 'border-red-500' : ''}`}
-                      value={editableLocation.buildingNumber || ''}
-                      onChange={(e) => handleInputChange("buildingNumber", e.target.value)}
-                      placeholder="Building Number"
-                    />
-                    {validationErrors.buildingNumber && (
-                      <p className="text-red-500 text-sm">{validationErrors.buildingNumber}</p>
-                    )}
-                  </div>
+            <Button onClick={handleSaveLocation} variant="outline" className="mt-4 bg-green-500 text-white rounded-md">
+              <Save className="w-4 h-4 mr-2" /> Save Location
+            </Button>
+            <Button onClick={() => setIsAdding(false)} variant="ghost" className="ml-2 text-gray-500">
+              <X className="w-4 h-4 mr-2" /> Cancel
+            </Button>
+          </div>
+        )}
 
-                  <div>
-                    <Label className="font-semibold">Apartment number</Label>
-                    <input
-                      className="w-full p-2 border rounded mb-2"
-                      value={editableLocation.apartmentNumber || ''}
-                      onChange={(e) => handleInputChange("apartmentNumber", e.target.value)}
-                      placeholder="Apartment Number"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="font-semibold">Province</Label>
-                    <input
-                      className="w-full p-2 border rounded mb-2"
-                      value={editableLocation.province || ''}
-                      onChange={(e) => handleInputChange("province", e.target.value)}
-                      placeholder="Province"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="font-semibold">Zip Code</Label>
-                    <input
-                      className="w-full p-2 border rounded mb-2"
-                      value={editableLocation.zipCode || ''}
-                      onChange={(e) => handleInputChange("zipCode", e.target.value)}
-                      placeholder="Zip Code"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="font-semibold">Longitude</Label>
-                    <input
-                      className="w-full p-2 border rounded mb-2"
-                      value={editableLocation.longitude || ''}
-                      onChange={(e) => handleInputChange("longitude", e.target.value)}
-                      placeholder="Longitude"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="font-semibold">Latitude</Label>
-                    <input
-                      className="w-full p-2 border rounded mb-2"
-                      value={editableLocation.latitude || ''}
-                      onChange={(e) => handleInputChange("latitude", e.target.value)}
-                      placeholder="Latitude"
-                    />
-                  </div>
-                </div>
-          ) : (
-            editableLocation && (
-              <div className="grid grid-cols-1 md:grid-cols-2">
-                
-                  <div>
-                  <p className="font-semibold mb-2">City</p>
-                  <p className="mb-3 text-gray-700">{editableLocation.city}</p>
-                    </div>
-                    <div>
-                    <p className="font-semibold mb-2">Province</p>
-                    <p className="mb-3 text-gray-700">{editableLocation.province || '-'}</p>
-                    </div>
-                    <div>
-                    <p className="font-semibold mb-2">Street</p>
-                    <p className="mb-3 text-gray-700">{editableLocation.street}</p>
-                    </div>
-                    <div>
-                    <p className="font-semibold mb-2">Zip Code</p>
-                    <p className="mb-3 text-gray-700">{editableLocation.zipCode || '-'}</p>
-                    </div>
-                    <div>
-                    <p className="font-semibold mb-2">Building Number</p>
-                    <p className="mb-3 text-gray-700">{editableLocation.buildingNumber}</p>
-                    </div>
-                    <div>
-                    <p className="font-semibold mb-2">Longitude</p>
-                    <p className="mb-3 text-gray-700">{editableLocation.longitude || '-'}</p>
-                    </div>
-                    <div>
-                    <p className="font-semibold mb-2">Apartment Number</p>
-                    <p className="mb-3 text-gray-700">{editableLocation.apartmentNumber || '-'}</p>
-                    </div>
-                 <div>
-                 <p className="font-semibold mb-2">Latitude</p>
-                 <p className="mb-3 text-gray-700">{editableLocation.latitude || '-'}</p>
-                </div>
+        {location && (
+          <div className="flex flex-col space-y-4">
+            <GoogleMap mapContainerStyle={{ height: "300px", width: "100%" }} center={mapCenter} zoom={15}>
+              <Marker position={markerPosition} />
+            </GoogleMap>
+            <div className="flex justify-between items-center">
+              <div>
+                <p>{location.street}, {location.city}</p>
+                <p>{location.zipCode}, {location.buildingNumber}</p>
+              </div>
+              {isOwner && (
+                <Button onClick={handleDeleteLocation} variant="outline" color="rose" size="sm">
+                  <Trash className="w-4 h-4 mr-2" /> Delete
+                </Button>
+              )}
             </div>
-              
-            )
-          )}
+          </div>
+        )}
       </CardContent>
-        </Card>
-        </>
-    )
+    </Card>
+  );
 };
+
 export default LocationCard;

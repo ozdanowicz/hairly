@@ -25,9 +25,12 @@ export const SalonHomeCard: React.FC<CardProps> = ({ salon }) => {
                   </NavLink>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm">
-                    <span className="font-semibold">Location:</span> {`${salon.location.city}`}
-                  </p>
+                <p className="text-sm">
+                  <span className="font-semibold">Location:</span>{" "}
+                  {salon.location
+                    ? `${salon.location.city || ""}`
+                    : "Location not available"}
+                </p>
                   <p className="text-sm">
                     <span className="font-semibold">Price Range:</span> {salon.priceRange[0]} - {salon.priceRange[1]} zl
                   </p>

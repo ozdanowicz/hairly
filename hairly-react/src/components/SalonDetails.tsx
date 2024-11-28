@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Scissors, Star } from 'lucide-react';
-import { Salon, fetchSalonDetails, Service} from '../apiService';
+import {Button} from "@/components/ui/button";
+import { Salon, fetchSalonDetails, Service, fetchEmployeeDetails} from '../apiService';
 import { fetchEmployeesBySalon, fetchSalonReviews, fetchSalonSchedule, fetchSalonServices } from '../salonService';
 import { Employee, Review, Schedule } from '../apiService';
 import EmployeesCard from './EmployeesCard.tsx';
@@ -10,6 +11,8 @@ import ImageCarousel from "./ImageCarousel";
 import SalonServices from './SalonServices.tsx';
 import LocationCard from './LocationCard.tsx';
 import SalonScheduleView from './SalonScheduleView.tsx';
+import ReactDOM from 'react-dom';
+import SalonAppointmentBooking from './SalonAppointmentBooking.tsx';
 
 const SalonDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +23,8 @@ const SalonDetails: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [ setSelectedService] = useState<Service | null>(null); // Track selected service
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [ setSelectedService] = useState<Service | null>(null); 
 
   useEffect(() => {
     const loadSalon = async () => {
@@ -35,6 +39,15 @@ const SalonDetails: React.FC = () => {
 
         const servicesData = await fetchSalonServices(Number(id));
         setServices(servicesData);
+
+        const employeeList = await fetchEmployeesBySalon(Number(id));
+        const detailedEmployees = await Promise.all(
+          employeeList.map(async (employee) => {
+            const detailedEmployee = await fetchEmployeeDetails(employee.id);
+            return detailedEmployee;
+          })
+        );
+        setEmployees(detailedEmployees);
       } catch (err) {
         setError('Failed to load salon details');
         console.error(err);
@@ -60,7 +73,7 @@ const SalonDetails: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid md:grid-cols-[300px_1fr] gap-8">
+      <div className="grid md:grid-cols-[400px_1fr] gap-8">
         <div className="space-y-6">
           <Card>
             <CardHeader className="bg-gray-100 pt-4 pb-4 mb-3 rounded-xl">
@@ -72,7 +85,6 @@ const SalonDetails: React.FC = () => {
               <CardContent>{salon.description}</CardContent>
           </Card>
 
-          {/* Employees Section */}
           <EmployeesCard salonId={salon.id} isOwnerDashboard={false} />
           <Card>
             <CardHeader className="bg-gray-100 rounded-xl pt-4 pb-4 mb-3">
@@ -99,13 +111,36 @@ const SalonDetails: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          <LocationCard location={salon.location} />
+          <LocationCard salonId={salon.id} isOwner={false} />
         </div>
 
         {/* Right Column */}
         <div className="space-y-8">
           <ImageCarousel images={salon.salonImages} />
           <SalonServices services={salon.services} setSelectedService={setSelectedService} />
+          <Button 
+            onClick={() => setShowBookingModal(true)} 
+            className="mt-4"
+          >
+            Book Appointment
+          </Button>
+          {showBookingModal && ReactDOM.createPortal(
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-xl">
+              <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative max-h-[80vh] overflow-y-auto">
+                <button 
+                  className="absolute top-4 right-4 text-gray-900 hover:text-gray-700"
+                  onClick={() => setShowBookingModal(false)}
+                >
+                  ✕
+                </button>
+                <SalonAppointmentBooking 
+                  employees={employees} 
+                  services={services} 
+                />
+              </div>
+            </div>,
+            document.body
+          )}
           <SalonScheduleView schedule={schedule} />
         </div>
       </div>

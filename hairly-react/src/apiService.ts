@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { LucideChevronRightCircle } from 'lucide-react';
 
 export const BASE_URL = 'http://localhost:8080/api/v1';
 
@@ -414,6 +415,11 @@ export const deleteSalonSpecialization = async ( specializationId: number) => {
   }
 }
 
+export interface AvailableAppointment {
+  date: string; 
+  availableTimes: string[]; 
+}
+
 export interface ClientAppointment {
   id: number;
   salonName: string;
@@ -483,6 +489,16 @@ export const fetchEmployeeSpecializations = async (userId: number): Promise<Spec
     throw error;
   }
 };
+
+export const fetchEmployeesByService = async (serviceId: number): Promise<Employee[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/employee/by-service/${serviceId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to load employees by service:", error);
+    throw error;
+  }
+}
 
 export const updateUserPersonalInfo = async (userId: number, form: UserUpdateForm): Promise<void> => {  
   try {
@@ -589,7 +605,7 @@ export const fetchSalonsByLocation = async (latitude: number, longitude: number,
 
 export const fetchLocation = async (salonId: number): Promise<Location> => {  
   try {
-    const response = await axios.get(`${BASE_URL}/location/${salonId}`);
+    const response = await axios.get(`${BASE_URL}/salon/${salonId}/location`);
     return response.data;
   } catch (error) {
     console.error("Failed to load salon location:", error);
@@ -607,9 +623,20 @@ export const updateSalonLocation = async (locationId: string, location: Location
   }
 };
 
-export const createSalonLocation = async (salonId: string, location: Location): Promise<Location> => {
+export interface LocationRequest {
+  street: string;
+  buildingNumber: string;
+  apartmentNumber: string;
+  city: string;
+  province?: string;
+  latitude?: number;
+  longitude?: number;
+  zipCode: string;
+}
+
+export const createSalonLocation = async (salonId: string, locationRequest: LocationRequest): Promise<Location> => {
   try {
-    const response = await axios.post(`${BASE_URL}/location/${salonId}`, location);
+    const response = await axios.post(`${BASE_URL}/location/${salonId}`, locationRequest);
     return response.data;
   } catch (error) {
     console.error("Failed to create salon location:", error);

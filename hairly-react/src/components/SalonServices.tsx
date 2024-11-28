@@ -21,7 +21,7 @@ const SalonServices: React.FC<ServicesProps> = ({ services, setSelectedService }
         <Tabs defaultValue={services[0]?.id.toString()}>
           <TabsList>
             {services.map((service) => (
-              <TabsTrigger key={service.id} value={service.id.toString()}>
+              <TabsTrigger className="rounded-xl border border-gray-200" key={service.id} value={service.id.toString()}>
                 {service.name}
               </TabsTrigger>
             ))}
@@ -35,22 +35,6 @@ const SalonServices: React.FC<ServicesProps> = ({ services, setSelectedService }
                   <CardDescription>Time: {service.durationMinutes} minutes</CardDescription>
                   <CardDescription>Price: {service.price.toFixed(2)}zl</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button onClick={() => setSelectedService(service)}>View Available Dates</Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>Available Dates for {service.name}</DialogTitle>
-                        <DialogDescription>Select a date to book your appointment.</DialogDescription>
-                      </DialogHeader>
-                      <ScrollArea className="h-[300px] w-full p-4">
-                        {/* Here you can add your calendar or any additional details */}
-                      </ScrollArea>
-                    </DialogContent>
-                  </Dialog>
-                </CardContent>
               </Card>
             </TabsContent>
           ))}

@@ -269,6 +269,7 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
       toast.error("Failed to update services.");
     }
   };
+  
 
   const handleSaveSchedule = async (updatedSchedule: Schedule[]) => { 
     try {
@@ -378,7 +379,7 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
           </Card>
 
           <div className="grid gap-8">
-          <LocationCard salonId={salon?.id} location={salon?.location} showEditButton={true} />
+          <LocationCard salonId={salon?.id} isOwner={true} />
            
           <Card>
             <CardHeader className="flex flex-col items-start justify-between space-y-0 pb-6 pt-6 bg-gray-100 rounded-xl mb-4">
