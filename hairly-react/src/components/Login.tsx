@@ -1,13 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import collageBackground from '@/assets/back1.png';
+import { useNavigate } from 'react-router-dom';
+import { useAuth, isTokenExpired } from '../tokenService';
 
 const Login: React.FC = () => {
+  const { token } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token && !isTokenExpired()) {
+      navigate('/profile');
+    }
+  }, [token, navigate]);
+
   const handleGoogleLogin = () => {
-     //localStorage.removeItem('authToken');
-      window.location.href = `http://localhost:8080/login/oauth2/code/google`; 
-    };
+    window.location.href = `http://localhost:8080/login/oauth2/code/google`; 
+  };
     
   return (
     <section

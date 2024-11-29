@@ -311,8 +311,6 @@ export async function fetchUserData(token: string): Promise<User> {
       'Authorization': `Bearer ${token}`,
     },
   });
-  // const data = await response.text(); // Change to text first to see the raw response
-  // console.log("Raw user data response:", data);
 
   if (!response.ok) throw new Error('Failed to fetch user data');
 
@@ -442,10 +440,29 @@ export interface ReviewRequest {
 
 export const submitReview = async(appointmentId: number, clientId: number, request: ReviewRequest): Promise<Review> => {
   try {
-    const response = await axios.post(`${BASE_URL}/review/${appointmentId}/client/${clientId}`, request);
+    const response = await axios.post(`${BASE_URL}/review/appointment/${appointmentId}/client/${clientId}`, request);
     return response.data;
   } catch (error) {
     console.error("Failed to submit review:", error);
+    throw error;
+  }
+}
+
+export interface AppointmentRequest {
+  salonId: number;
+  clientId: number;
+  employeeId: number;
+  serviceId: number;
+  scheduledTime: string;
+  scheduledDate: string;
+}
+
+export const bookAppointment = async (request: AppointmentRequest): Promise<ClientAppointment> => {
+  try {
+    const response = await axios.post(`${BASE_URL}/appointment`, { request });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to book appointment:", error);
     throw error;
   }
 }

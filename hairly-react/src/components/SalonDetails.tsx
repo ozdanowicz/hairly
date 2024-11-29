@@ -136,6 +136,7 @@ const SalonDetails: React.FC = () => {
                 <SalonAppointmentBooking 
                   employees={employees} 
                   services={services} 
+                  salonId={salon.id}
                 />
               </div>
             </div>,

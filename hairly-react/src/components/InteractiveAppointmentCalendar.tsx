@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { format } from 'date-fns';
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -86,12 +86,6 @@ export function InteractiveSalonCalendarComponent({
               ))}
             </div>
           </div>
-        )}
-
-        {selectedDate && selectedTime && (
-          <Button className="w-full">
-            Book for {format(selectedDate, "MMM d")} at {selectedTime.slice(0, 5)}
-          </Button>
         )}
       </CardContent>
     </Card>

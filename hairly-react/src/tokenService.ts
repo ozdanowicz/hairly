@@ -14,7 +14,6 @@ export function saveTokens(accessToken: string, refreshToken: string, expiresIn:
   localStorage.setItem(EXPIRY_KEY, expiryTime.toString());
 }
 
-
 // Function to remove tokens
 export function removeTokens() {
   localStorage.removeItem(TOKEN_KEY);
@@ -29,52 +28,51 @@ export function isTokenExpired(): boolean {
 }
 
 export function useAuth() {
-    const [token, setToken] = useState<string | null>(localStorage.getItem(TOKEN_KEY));
-  
-    const refreshTokens = useCallback(async () => {
-      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-      if (!refreshToken) {
-        removeTokens();
-        setToken(null);
-        return;
-      }
-  
-      try {
-        const response = await fetch('http://localhost:8080/auth/refresh', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${refreshToken}` },
-        });
-  
-        if (!response.ok) throw new Error('Token refresh failed');
-  
-        const { accessToken, expiresIn } = await response.json();
-        saveTokens(accessToken, refreshToken, expiresIn);
-        setToken(accessToken);
-      } catch (error) {
-        console.error('Failed to refresh tokens:', error);
-        removeTokens();
-        setToken(null);
-      }
-    }, []);
-  
-    useEffect(() => {
+  const [token, setToken] = useState<string | null>(localStorage.getItem(TOKEN_KEY));
+
+  const refreshTokens = useCallback(async () => {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (!refreshToken) {
+      removeTokens();
+      setToken(null);
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8080/auth/refresh', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${refreshToken}` },
+      });
+
+      if (!response.ok) throw new Error('Token refresh failed');
+
+      const { accessToken, expiresIn } = await response.json();
+      saveTokens(accessToken, refreshToken, expiresIn);
+      setToken(accessToken);
+    } catch (error) {
+      console.error('Failed to refresh tokens:', error);
+      removeTokens();
+      setToken(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isTokenExpired()) {
+      refreshTokens();
+    }
+
+    const interval = setInterval(() => {
       if (isTokenExpired()) {
         refreshTokens();
       }
-  
-      const interval = setInterval(() => {
-        if (isTokenExpired()) {
-          refreshTokens();
-        }
-      }, 5 * 60 * 1000);
-  
-      return () => clearInterval(interval);
-    }, [refreshTokens]);
-  
-    return {
-      token,
-      setToken,
-      removeTokens,
-    };
-  }
-  
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [refreshTokens]);
+
+  return {
+    token,
+    setToken,
+    removeTokens,
+  };
+}

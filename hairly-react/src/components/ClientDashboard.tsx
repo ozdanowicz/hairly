@@ -35,7 +35,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState<boolean>(true);
   const [loadingAppointments, setLoadingAppointments] = useState<boolean>(true);
-  const [appointmentId, setAppointmentId] = useState<number>(0);
+  const [appointmentId, setAppointmentId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -86,7 +86,10 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
 
   const handleSubmitReview = async () => {
     console.log("SubmitReview", appointmentId, rating, reviewText);
-    if (!appointmentId) console.error("Appointment ID is missing");
+    if (appointmentId === null) {
+      console.error("Appointment ID is missing");
+      return;
+    }
 
     try {
       const reviewRequest: ReviewRequest = {
@@ -159,6 +162,10 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                         <div className="flex justify-between">
                           <span className="font-semibold">Salon:</span>
                           <span className="text-gray-500">{appointment.salonName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-semibold">ID:</span>
+                          <span className="text-gray-500">{appointment.id}</span>
                         </div>
                         {!appointment.reviewId && (
                           <Button onClick={() => handleOpenReviewModal(appointment.id)}>

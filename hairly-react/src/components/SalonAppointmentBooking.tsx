@@ -3,8 +3,9 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "react-toastify";
-import { Employee, Service, fetchEmployeesByService, AvailableAppointment } from "@/apiService";
+import { Employee, Service, fetchEmployeesByService, AvailableAppointment, AppointmentRequest, bookAppointment, fetchUserData, User } from "@/apiService";
 import { InteractiveSalonCalendarComponent } from "./InteractiveAppointmentCalendar";
+import { useAuth } from "@/tokenService";
 
 interface Appointment {
   employeeId: number;
@@ -13,9 +14,11 @@ interface Appointment {
   time: string;
 }
 
-export function SalonAppointmentBooking({ employees, services }: { employees: Employee[], services: Service[] }) {
+export function SalonAppointmentBooking({ employees, services, salonId }: { employees: Employee[], services: Service[], salonId: number }) {
+  const { token } = useAuth();
   const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([]);
   const [availableServices, setAvailableServices] = useState<Service[]>(services);
+  const [loggedInClient, setLoggedInClient] = useState<User | null>(null);
   const [availableDates, setAvailableDates] = useState<AvailableAppointment[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<number | null>(null);
   const [selectedService, setSelectedService] = useState<number | null>(null);
@@ -44,46 +47,82 @@ export function SalonAppointmentBooking({ employees, services }: { employees: Em
         toast.error("Failed to fetch available dates");
     }
 };
+
+const fetchLoggedInClient = async () => {
+  if (!token) {
+    toast.error("You must be logged in to book an appointment");
+    return;
+  }
+
+  try {
+    const userData = await fetchUserData(token);
+    if (userData.role !== 'CLIENT') {
+      toast.error("You must have a client role to book an appointment");
+      return;
+    }
+    setLoggedInClient(userData);
+  } catch (error) {
+    console.error("Error fetching logged in client:", error);
+    toast.error("Failed to fetch logged in client");
+  }
+}
  
   useEffect(() => {
+    fetchLoggedInClient();
+
     const fetchEmployees = async () => {
       if (selectedService) {
         try {
           const fetchedEmployees = await fetchEmployeesByService(selectedService);
           setAvailableEmployees(fetchedEmployees);
+          setSelectedEmployee(null); // Reset selected employee when service changes
         } catch (error) {
           toast.error("Failed to load employees");
         }
-        setSelectedEmployee(null); 
       } else {
         setAvailableEmployees(employees); 
       }
     };
     fetchEmployees();
+  }, [selectedService, employees]);
+
+  useEffect(() => {
     if (selectedEmployee) {
       const today = new Date();
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
       fetchAvailableDates(selectedEmployee, startOfMonth, endOfMonth);
-  }
-  }, [selectedService, employees, selectedEmployee]);
+    }
+  }, [selectedEmployee]);
 
-  const handleBookAppointment = () => {
+  const handleBookAppointment = async () => {
     if (!selectedEmployee || !selectedService || !selectedDate || !selectedTime) {
       toast.error("Please select all required fields");
       return;
     }
 
-    const appointment: Appointment = {
+    if (!loggedInClient) {
+      toast.error("You must be logged in to book an appointment");
+      return;
+    }
+
+    const appointmentRequest: AppointmentRequest = {
+      salonId: salonId,
+      clientId: loggedInClient.id,
       employeeId: selectedEmployee,
       serviceId: selectedService,
-      date: selectedDate,
-      time: selectedTime,
+      scheduledDate: selectedDate.toISOString().split('T')[0],
+      scheduledTime: selectedTime,
     };
 
-    console.log("Booking appointment:", appointment);
-    toast.success("Appointment booked successfully!");
+    try {
+      await bookAppointment(appointmentRequest);
+      toast.success("Appointment booked successfully!");
+    } catch (error) {
+      console.error("Error booking appointment:", error);
+      toast.error("Failed to book appointment");
+    }
 
     setSelectedEmployee(null);
     setSelectedService(null);
