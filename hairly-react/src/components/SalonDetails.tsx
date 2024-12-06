@@ -76,7 +76,7 @@ const SalonDetails: React.FC = () => {
       <div className="grid md:grid-cols-[400px_1fr] gap-8">
         <div className="space-y-6">
           <Card>
-            <CardHeader className="bg-gray-100 pt-4 pb-4 mb-3 rounded-xl">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pt-4 pb-4 mb-3 bg-gray-100 rounded-xl">
               <CardTitle className="flex items-center gap-2">
                 <Scissors className="w-6 h-6" />
                 {salon.name}
@@ -120,7 +120,7 @@ const SalonDetails: React.FC = () => {
           <SalonServices services={salon.services} setSelectedService={setSelectedService} />
           <Button 
             onClick={() => setShowBookingModal(true)} 
-            className="mt-4"
+            className="rounded-xl ml-16 bg-rose-700 text-white hover:bg-rose-800"
           >
             Book Appointment
           </Button>

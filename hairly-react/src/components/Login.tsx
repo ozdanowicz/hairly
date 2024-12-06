@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
-import { Card, CardContent} from '@/components/ui/card';
-import {Button} from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import collageBackground from '@/assets/back1.png';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, isTokenExpired } from '../tokenService';
+import { useAuth, isTokenExpired, saveTokens } from '../tokenService';
 
 const Login: React.FC = () => {
-  const { token } = useAuth();
+  const { token, setToken } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,7 +18,20 @@ const Login: React.FC = () => {
   const handleGoogleLogin = () => {
     window.location.href = `http://localhost:8080/login/oauth2/code/google`; 
   };
-    
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+    const expiresIn = urlParams.get('expires_in');
+
+    if (accessToken && refreshToken && expiresIn) {
+      saveTokens(accessToken, refreshToken, parseInt(expiresIn, 10));
+      setToken(accessToken);
+      navigate('/profile');
+    }
+  }, [navigate, setToken]);
+
   return (
     <section
       className="min-h-screen flex items-center justify-center bg-cover bg-center"

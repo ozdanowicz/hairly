@@ -20,11 +20,11 @@ import AddFreeDates from './components/FreeDatesForm.tsx';
 import { ToastContainer} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import GoogleMapsLoader from "./components/GoogleProvider.tsx";
+import {AuthProvider} from './components/AuthContext.tsx';
 
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    
     <Route element={<MainLayout />}>
       <Route path="/" element={<HomePage />} />
       <Route path='/offerts' element={<OffertsPage />} />
@@ -48,13 +48,14 @@ const router = createBrowserRouter(
 const App: React.FC = () => {
   return (
     <>
-    <GoogleMapsLoader>
-    <RouterProvider router={router} />
-    </GoogleMapsLoader>
     <ToastContainer position="top-right" autoClose={2000} />
-  
-  </>
-  )
+    <GoogleMapsLoader>
+        <AuthProvider>
+        <RouterProvider router={router}/>
+          </AuthProvider>
+    </GoogleMapsLoader>
+    </>
+  );
 };
 
 export default App;

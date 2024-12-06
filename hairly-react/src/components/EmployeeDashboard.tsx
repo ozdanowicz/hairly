@@ -82,16 +82,17 @@ export function EmployeeDashboard({ user }: EmployeeDashboardProps) {
 
   const handleEdit = () => setEditMode(true);
 
-  const handleSave = async () => {
+  const handleSave = (updatedInfo: EmployeeInfo) => {
     try {
-      await updateUserPersonalInfo(user.id, employeeInfo);
+      setEmployeeInfo(updatedInfo); // Update parent state with edited info
+      updateUserPersonalInfo(user.id, updatedInfo); // Send updated info to backend
       toast.success("Personal information updated successfully");
       setEditMode(false);
     } catch (error) {
-      setError("Failed to update specializations");
+      console.error("Failed to save updated info:", error);
+      setError("Failed to update personal information");
       toast.error("Failed to update personal information");
     }
-    setEditMode(false);
   };
 
   return (

@@ -4,41 +4,46 @@ import EmployeeDashboard from "../components/EmployeeDashboard";
 import { fetchUserData, User, Role } from '../apiService';
 import ClientDashboard from '../components/ClientDashboard';
 import OwnerDashboard from '../components/OwnerDashboard';
+import { useAuth, saveTokens } from '../tokenService';
 
 const ProfilePage: React.FC = () => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-  
-    useEffect(() => {
-      const fetchUser = async () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const accessToken = urlParams.get('access_token');
-        const token = accessToken || localStorage.getItem('authToken');
-  
-        if (accessToken) {
-          localStorage.setItem('authToken', accessToken); // Store token if present in URL
-        }
-  
-  
-        if (!token) {
-          setError("User is not authenticated.");
-          setLoading(false);
-          return;
-        }
-  
-        try {
-          const userData = await fetchUserData(token);
-          setUser(userData);
-        } catch (error) {
-          setError(error instanceof Error ? error.message : 'Unknown error occurred');
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      fetchUser();
-    }, []);
+  const { token, setToken } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const accessToken = urlParams.get('access_token');
+      const refreshToken = urlParams.get('refresh_token');
+      const expiresIn = urlParams.get('expires_in');
+
+      if (accessToken && refreshToken && expiresIn) {
+        saveTokens(accessToken, refreshToken, parseInt(expiresIn, 10));
+        setToken(accessToken);
+      }
+
+      const tokenToUse = accessToken || token;
+
+      if (!tokenToUse) {
+        setError("User is not authenticated.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const userData = await fetchUserData(tokenToUse);
+        setUser(userData);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'Unknown error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [token, setToken]);
 
 
   if (loading) return <div>Loading...</div>;
@@ -56,7 +61,7 @@ const ProfilePage: React.FC = () => {
       case Role.EMPLOYEE:
           return <EmployeeDashboard user={user} />;
       default:
-          return <div>Access Denied</div>;
+          return <div>Unknown role</div>;
   }
 };
 

@@ -66,10 +66,8 @@ const fetchLoggedInClient = async () => {
     toast.error("Failed to fetch logged in client");
   }
 }
- 
   useEffect(() => {
-    fetchLoggedInClient();
-
+  
     const fetchEmployees = async () => {
       if (selectedService) {
         try {
@@ -116,9 +114,17 @@ const fetchLoggedInClient = async () => {
       scheduledTime: selectedTime,
     };
 
+    console.log("Appointment Request:", appointmentRequest);
+
     try {
-      await bookAppointment(appointmentRequest);
-      toast.success("Appointment booked successfully!");
+      const response = await bookAppointment(appointmentRequest);
+      if (response.ok) {
+        toast.success("Appointment booked successfully!");
+      } else {
+        const errorData = await response.json();
+        console.error("Error booking appointment:", errorData);
+        toast.error(`Failed to book appointment: ${errorData.message}`);
+      }
     } catch (error) {
       console.error("Error booking appointment:", error);
       toast.error("Failed to book appointment");
