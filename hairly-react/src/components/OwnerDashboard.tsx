@@ -2,10 +2,8 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-
-
 import { Edit, Save, TrashIcon, X, Plus, Sparkle } from "lucide-react"
-import { Employee, Service, Schedule, Salon} from "@/apiService"
+import { Employee, Service, Schedule, Salon, fetchSalonDetails} from "@/apiService"
 import { fetchOwnerSalon, fetchSalonSpecializations, updateSpecialization, updateSalonInfo, Specialization, SpecializationEnum, createSalonSpecialization, deleteSalonSpecialization} from "@/apiService"
 import {fetchSalonSchedule} from "@/salonService"
 import { fetchEmployeesBySalon, createSalon } from "@/salonService"
@@ -16,7 +14,7 @@ import SalonPhotoManager from "./SalonPhotoManager"
 import ServicesCard from "./ServicesCard"
 import { Label } from "@/components/ui/label"
 import SalonScheduleCard from "./SalonScheduleCard"
-
+import { useTranslation } from 'react-i18next';
 interface OwnerInfo {
   id: number
   name: string
@@ -47,13 +45,14 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
   const [schedule, setSchedule] = useState<Schedule[]>([]);
   const [salonName, setSalonName] = useState(salon?.name || "");
   const [salonDescription, setSalonDescription] = useState(salon?.description || "");
-  const [selectedServices, setSelectedServices] = useState<Set<number>>(new Set())  // Track selected services
+  const [selectedServices, setSelectedServices] = useState<Set<number>>(new Set()) 
 
   const [salonPhotos, setSalonPhotos] = useState<SalonPhoto[]>([{ id: 1, url: "/placeholder.svg" }]);
   const [isEditingSalonInfo, setIsEditingSalonInfo] = useState(false);
   const [isEditingSchedule, setIsEditingSchedule] = useState(false);
   const [isEditingServices, setIsEditingServices] = useState(false);
-  const [isSalonRegistered, setIsSalonRegistered] = useState(false); // Track if salon is registered
+  const [isSalonRegistered, setIsSalonRegistered] = useState(false); 
+  const {t} = useTranslation();
 
 
   useEffect(() => {
@@ -79,7 +78,7 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
 
   const handleRegisterSalon = async () => {
     if (!salonName || !salonDescription) {
-      toast.error("Please fill in both salon name and description.");
+      toast.error(t('toast.registerSalon.error'));
       return;
     }
 
@@ -92,9 +91,9 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
       }
 
       setIsSalonRegistered(true);
-      toast.success("Salon registered successfully!");
+      toast.success(t('toast.registerSalon.success'));
     } catch (error) {
-      toast.error("Failed to register salon.");
+      toast.error(t('toast.registerSalon.fail'));
       console.error("Error registering salon:", error);
     }
   };
@@ -111,9 +110,9 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
     setSelectedServices((prev) => {
       const updated = new Set(prev);
       if (updated.has(serviceId)) {
-        updated.delete(serviceId); // Remove unchecked service
+        updated.delete(serviceId); 
       } else {
-        updated.add(serviceId); // Add checked service
+        updated.add(serviceId); 
       }
       return updated;
     });
@@ -125,24 +124,24 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
     try {
       await deleteSalonSpecialization(specializationId);
       setSpecializations(specializations.filter((item) => item.id !== specializationId));
-      toast.success("Specialization deleted successfully!");
+      toast.success(t('toast.specializationDelete'));
     } catch (error) {
-      toast.error("Failed to delete specialization.");
+      toast.error(t('toast.error.specializationDelete'));
       console.error("Error deleting specialization:", error);
     }
   };
 
   const handleEditSpecialization = (specialization: Specialization) => {
     setEditingSpecialization(specialization);
-    setSelectedSpecialization(specialization.specialization); // Set to the existing specialization
+    setSelectedSpecialization(specialization.specialization); 
     const selectedServiceIds = new Set(specialization.services.map((service) => service.id));
-    setSelectedServices(selectedServiceIds); // Populate the selected services
+    setSelectedServices(selectedServiceIds); 
   };
   
 
   const handleSaveSpecialization = async () => {
     if (!selectedSpecialization) {
-      toast.error("Please provide a specialization name.");
+      toast.error(t('toast.error.specializationNoName'));
       return;
     }
   
@@ -153,7 +152,6 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
   
     try {
       if (editingSpecialization?.id) {
-        // Editing an existing specialization
         const updatedSpecialization = await updateSpecialization(
           editingSpecialization.id,
           selectedSpecialization,
@@ -166,7 +164,6 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
           )
         );
       } else {
-        // Creating a new specialization
         const createdSpecialization = await createSalonSpecialization(
           salon?.id,
           newSpecializationData.specialization,
@@ -178,10 +175,10 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
   
       setEditingSpecialization(null);
       setSelectedServices(new Set());
-      toast.success("Specialization saved successfully!");
+      toast.success(t('toast.specializationSave'));
     } catch (error) {
       console.error("Failed to save specialization:", error);
-      toast.error("Failed to save specialization.");
+      toast.error(t('toast.error.specializationSave'));
     }
   };
 
@@ -200,7 +197,6 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
 
 
   const handleSave = async (section: 'salonInfo' | 'schedule' | 'services') => {
-    // Implement saving logic here
     switch(section) {
       case 'salonInfo': {
         try {
@@ -208,9 +204,9 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
           await updateSalonInfo(salon.id, updatedSalonInfo);
           setSalon(updatedSalonInfo);
           setIsEditingSalonInfo(false);
-          toast.success("Salon info updated successfully!"); // Show success notification
+          toast.success(t('toast.salonUpdated')); 
         } catch (error) {
-          toast.error("Failed to update salon info.");
+          toast.error(t('toast.error.salonUpdate')); 
         }
         break;
       }
@@ -243,15 +239,15 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
     return isEditing ? (
       <div className="flex gap-2">
         <Button className="border-non bg-white rounded-xl" onClick={() => handleSave(section)} variant="outline" size="sm">
-          <Save className="w-4 h-4 mr-2" /> Save
+          <Save className="w-4 h-4 mr-2" /> {t('button.save')}
         </Button>
         <Button className="border-non bg-white rounded-xl" onClick={() => setEditing(false)} variant="ghost" size="sm">
-          <X className="w-4 h-4 mr-2" /> Cancel
+          <X className="w-4 h-4 mr-2" /> {t('button.cancel')}
         </Button>
       </div>
     ) : (
       <Button className="border-non bg-white rounded-xl" onClick={() => setEditing(true)} variant="outline" size="sm">
-        <Edit className="w-4 h-4 mr-2" /> Edit
+        <Edit className="w-4 h-4 mr-2" /> {t('button.edit')}
       </Button>
     );
   };
@@ -264,9 +260,9 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
     try {
       setServices(updatedServices);
       setIsEditingServices(false);
-      toast.success("Services updated successfully!");
+      toast.success(t('toast.service.updatedSuccess'));
     } catch (error) {
-      toast.error("Failed to update services.");
+      toast.error(t('toast.service.saveFailed'));
     }
   };
   
@@ -275,9 +271,9 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
     try {
       setSchedule(updatedSchedule);
       setIsEditingSchedule(false);
-      toast.success("Schedule updated successfully!");
+      toast.success(t('toast.scheduleUpdated'));
     } catch (error) {
-      toast.error("Failed to update schedule.");
+      toast.error(t('toast.error.scheduleUpdate'));
     }
   }
   
@@ -287,7 +283,7 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8 dark:bg-rose-200 dark:border-rose-700">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-rose-900 dark:text-black">
-            Salon Owner Dashboard
+          {t('salonCardTitle')}
           </h1>
         </div>
         {/* {!isSalonRegistered && (
@@ -323,11 +319,11 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
                 <div className="flex flex-col">
                   <Label 
                     className="mb-1"
-                    htmlFor="salon-description">Salon Description</Label>
+                    htmlFor="salon-description">{t('regirsterSalon.salonDescriptionLabel)}</Label>
                   <Input
                     className="text-gray-600 rounded-xl border-gray-300"
                     id="salon-description"
-                    placeholder="Enter salon description"
+                    placeholder={t('regirsterSalon.salonDescriptionLabel)}
                     value={salonDescription}
                     onChange={(e) => setSalonDescription(e.target.value)}
                   />
@@ -344,55 +340,54 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
         )}
  */}
 
-        {/* {isSalonRegistered && ( */}
           <div className="grid gap-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 pt-4 bg-gray-100 rounded-xl mb-4">
-              <CardTitle className="">Salon Information</CardTitle>
+              <CardTitle className="">{t('salonInfo.title')}</CardTitle>
               {renderEditButtons('salonInfo')}
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col gap-1.5">
-                <p className="font-semibold">Salon Name</p>
+                <p className="font-semibold">{t('salonInfo.salonName')}</p>
                 {isEditingSalonInfo ? (
                   <input 
                   className="w-full p-2 border rounded text-gray-700" 
                   value={salonName}
-                  placeholder="Salon Name"
+                  placeholder={t('salonInfo.salonName')}
                   onChange={(e) => setSalonName(e.target.value)} />
                 ) : (
-                  <p className=" text-gray-700">{salon?.name || "No salon name yet"}</p>
+                  <p className=" text-gray-700">{salon?.name || "no salon name yet" }</p>
                 )}
-                <p className="font-semibold">Description</p>
+                <p className="font-semibold">{t('salonInfo.description')}</p>
                 {isEditingSalonInfo ? (
                   <textarea 
                   className="w-full p-2 border rounded text-gray-700" 
                   value={salonDescription}
-                  placeholder="Salon Description"
+                  placeholder={t('salonInfo.description')}
                   onChange={(e) => setSalonDescription(e.target.value)}
                   rows={4} />
                 ) : (
-                  <p className="text-gray-700">{salon?.description || "No description yet"}</p>
+                  <p className="text-gray-700">{salon?.description || "no salon description yet"}</p>
                 )}
               </div>
             </CardContent>
           </Card>
 
           <div className="grid gap-8">
-          <LocationCard salonId={salon?.id} isOwner={true} />
+          <LocationCard salonId={salon?.id || 0} isOwner={true} />
            
           <Card>
             <CardHeader className="flex flex-col items-start justify-between space-y-0 pb-6 pt-6 bg-gray-100 rounded-xl mb-4">
-              <CardTitle>Specializations</CardTitle>
+              <CardTitle>{t('specializations.title')}</CardTitle>
             </CardHeader>
             <CardContent>
               {editingSpecialization ? (
                 <div className="space-y-4">
                   <div className="space-y-2 flex flex-col">
-                    <Label className="font-bold" htmlFor="specialization-name">Specialization Name</Label>
+                    <Label className="font-bold" htmlFor="specialization-name">{t('specializations.title')}</Label>
                     <select
                       id="specialization-name"
-                      value={selectedSpecialization || editingSpecialization.specialization} // Default to editing value
+                      value={selectedSpecialization || editingSpecialization.specialization} 
                       onChange={(e) => setSelectedSpecialization(e.target.value as SpecializationEnum)}
                       className="border border-gray-300 rounded-xl p-2 focus:border-rose-500"
                     >
@@ -403,10 +398,8 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
                       ))}
                     </select>
                   </div>
-
-                  {/* Services Selection */}
                   <div className="space-y-2">
-                    <Label className="font-bold">Services (Optional)</Label>
+                    <Label className="font-bold">{t('service.optional')}</Label>
                     {services.map((service) => (
                       <div key={service.id} className="flex items-center space-x-2">
                         <input
@@ -422,11 +415,9 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
                       </div>
                     ))}
                     {!services.length && (
-                      <p className="text-gray-500 text-sm">No services available.</p>
+                      <p className="text-gray-500 text-sm">{t('service.noServices')}</p>
                     )}
                   </div>
-
-                  {/* Save and Cancel Buttons */}
                   <div className="flex space-x-2">
                     <Button
                       size="sm"
@@ -434,7 +425,7 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
                       onClick={handleSaveSpecialization}
                     >
                       <Save className="h-4 w-4"></Save>
-                      Save
+                      {t('button.save')}
                     </Button>
                     <Button
                       size="sm"
@@ -442,7 +433,7 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
                       className="rounded-xl shadow bg-gray-200 border-non hover:bg-gray-300"
                       onClick={() => setEditingSpecialization(null)}
                     >
-                      Cancel
+                      {t('button.cancel')}
                     </Button>
                   </div>
                 </div>
@@ -484,7 +475,6 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
                       </div>
                     </div>
                   ))}
-                  {/* Add New Specialization */}
                   <Button
                     className="rounded-xl shadow mt-4 border-non"
                     variant="outline"
@@ -493,7 +483,7 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
                       setEditingSpecialization({specialization: "", services: [] })
                     }
                   >
-                    <Plus className="h-4 w-4" /> Add
+                    <Plus className="h-4 w-4" /> {t('button.add')}
                   </Button>
                 </div>
               )}
@@ -506,11 +496,8 @@ export function SalonOwnerDashboard({ user }: OwnerDashboardProps) {
           <EmployeesCard salonId={salon?.id || 0}  isOwnerDashboard={true} specializations ={specializations} />
 
           <SalonPhotoManager salonId={salon?.id}/>
-
-
         </div>
         </div>
-        {/* )} */}
       </div>
     </section>
   );

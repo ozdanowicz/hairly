@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { LucideChevronRightCircle } from 'lucide-react';
+
 
 export const BASE_URL = 'http://localhost:8080/api/v1';
 
@@ -32,6 +32,7 @@ export interface Service {
 }
 
 export interface EmployeeAppointment {
+  appointmentId: number;
   scheduledTime: string;
   scheduledDate: string;
   status: string;
@@ -43,10 +44,11 @@ export interface EmployeeAppointment {
 }
 
 export enum SpecializationEnum {
-  HAIRDRESSER= 'HAIRDRESSER',
+  HAIRDRESSER= 'HAIRSTYLIST',
   BARBER= 'BARBER',
-  STYLIST= 'STYLIST',
+  STYLIST= 'UPDOS',
   COLORIST= 'COLORIST',
+  HAIRCARE= 'HAIRCARE',
 }
 
 export enum DayOfWeek {
@@ -57,6 +59,14 @@ export enum DayOfWeek {
   FRIDAY= 'FRIDAY',
   SATURDAY= 'SATURDAY',
   SUNDAY= 'SUNDAY',
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
 }
 
 export interface Specialization {
@@ -125,6 +135,7 @@ export interface Appointment {
 
 export enum AppointmentStatus {
   PENDING= 'PENDING',
+  UPCOMING= 'UPCOMING',
   CONFIRMED= 'CONFIRMED',
   CANCELLED= 'CANCELLED',
   COMPLETED= 'COMPLETED',
@@ -153,8 +164,6 @@ export interface User {
   email: string;
   phone: string;
   role: Role;
-  // appointments_as_client: Appointment[];
-  // appointments_as_employee: Appointment[];
   createdAt: string;
 }
 
@@ -180,7 +189,14 @@ export interface Salon {
 export const createSalon = async (salonData: SalonRequest): Promise<SalonRequest> => {
   try {
     console.log(salonData);
-    const response = await axios.post(`${BASE_URL}/salon`, salonData);
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.post(`${BASE_URL}/salon`, salonData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error('Error creating salon:', error);
@@ -318,11 +334,6 @@ export async function fetchUserData(token: string): Promise<User> {
   return userData;
 }
 
-// export const fetchSpecializationEnums = async (): Promise<SpecializationEnum[]> => {
-//   const response = await axios.get<SpecializationEnum[]>(`${BASE_URL}/specialization/enums`);
-//   return response.data;
-// };
-
 export const fetchSalonSpecializations = async (salonId: number): Promise<Specialization[]> => {
   try {
     const response = await axios.get(`${BASE_URL}/salon/${salonId}/specializations`);
@@ -333,11 +344,16 @@ export const fetchSalonSpecializations = async (salonId: number): Promise<Specia
   }
 }
 
-// Assign specialization to an employee
 export const assignSpecializationToEmployee = async (employeeId: number, specializationIds: number[] = []) => {
   try {
-    console.log("Assigning specializations to employee:", specializationIds);
-    await axios.put(`${BASE_URL}/employee/${employeeId}/assign`, specializationIds); // Directly send the array
+    const token = localStorage.getItem('accessToken');
+    await axios.put(`${BASE_URL}/employee/${employeeId}/assign`, specializationIds, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   } catch (error) {
     console.error("Error assigning specializations to employee:", error);
     throw error;
@@ -346,7 +362,14 @@ export const assignSpecializationToEmployee = async (employeeId: number, special
 
 export const addEmployeeToSalon = async (email: string, salonId: number): Promise<Employee> => {
   try {
-    const response = await axios.post(`${BASE_URL}/employee/salon/${salonId}/email/${email}`);
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.post(`${BASE_URL}/employee/salon/${salonId}/email/${email}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Failed to add employee to salon:", error);
@@ -366,7 +389,14 @@ export const doesUserWithEmailExists = async (email: string): Promise<string> =>
 
 export const deleteEmployeeFromSalon = async (employeeId: number): Promise<void> => {  
   try {
-    await axios.delete(`${BASE_URL}/employee/${employeeId}`);
+    const token = localStorage.getItem('accessToken');
+    await axios.delete(`${BASE_URL}/employee/${employeeId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   } catch (error) {
     console.error("Failed to delete employee:", error);
     throw error;
@@ -376,7 +406,14 @@ export const deleteEmployeeFromSalon = async (employeeId: number): Promise<void>
 
 export const removeSpecializationFromEmployee = async (employeeId: number, specializationId: number) => { 
   try {
-    await axios.delete(`${BASE_URL}/employee/${employeeId}/specialization/${specializationId}`);
+    const token = localStorage.getItem('accessToken');
+    await axios.delete(`${BASE_URL}/employee/${employeeId}/specialization/${specializationId}`, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   } catch (error) {
     console.error('Error removing specialization from employee:', error);
     throw error;
@@ -385,7 +422,14 @@ export const removeSpecializationFromEmployee = async (employeeId: number, speci
 
 export const createSalonSpecialization = async (salonId: number, specialization: SpecializationEnum, serviceIds: number[] = []) => {
   try {
-    const response = await axios.post(`${BASE_URL}/specialization/salon/${salonId}`, { specialization, serviceIds });
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.post(`${BASE_URL}/specialization/salon/${salonId}`, { specialization, serviceIds }, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error('Error creating salon specialization:', error);
@@ -395,8 +439,14 @@ export const createSalonSpecialization = async (salonId: number, specialization:
 
 export const updateSpecialization = async(specialiationId: number, specialization: SpecializationEnum, serviceIds: number[] = []): Promise<Specialization> => {
   try {
-    console.log('Updating specialization:', { specialization, serviceIds });
-     const response = await axios.put(`${BASE_URL}/specialization/${specialiationId}`, { specialization, serviceIds });
+    const token = localStorage.getItem('accessToken');
+     const response = await axios.put(`${BASE_URL}/specialization/${specialiationId}`, { specialization, serviceIds }, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+     );
      return response.data;
   } catch (error) {
     console.error('Error updating salon specialization:', error);
@@ -406,7 +456,14 @@ export const updateSpecialization = async(specialiationId: number, specializatio
 
 export const deleteSalonSpecialization = async ( specializationId: number) => {
   try {
-    await axios.delete(`${BASE_URL}/specialization/${specializationId}`);
+    const token = localStorage.getItem('accessToken');
+    await axios.delete(`${BASE_URL}/specialization/${specializationId}`, 
+      {
+        headers: {
+        Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   } catch (error) {
     console.error('Error deleting salon specialization:', error);
     throw error;
@@ -440,10 +497,27 @@ export interface ReviewRequest {
 
 export const submitReview = async(appointmentId: number, clientId: number, request: ReviewRequest): Promise<Review> => {
   try {
-    const response = await axios.post(`${BASE_URL}/review/appointment/${appointmentId}/client/${clientId}`, request);
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.post(`${BASE_URL}/review/appointment/${appointmentId}/client/${clientId}`, request, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Failed to submit review:", error);
+    throw error;
+  }
+}
+
+export const isAppointmentReviewed = async (appointmentId: number): Promise<boolean> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/review/appointment/${appointmentId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to check if appointment is reviewed:", error);
     throw error;
   }
 }
@@ -459,13 +533,31 @@ export interface AppointmentRequest {
 
 export const bookAppointment = async (request: AppointmentRequest): Promise<ClientAppointment> => {
   try {
-    const response = await axios.post(`${BASE_URL}/appointment`, { request });
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.post(`${BASE_URL}/calendar/appointment`,  request, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+     );
     return response.data;
   } catch (error) {
     console.error("Failed to book appointment:", error);
     throw error;
   }
 }
+
+export const updateAppointmentStatus = async (appointmentId: number, status: AppointmentStatus): Promise<Appointment> => {
+  try {
+    const response = await axios.put(`${BASE_URL}/appointment/${appointmentId}/status`, { status }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update appointment:", error);
+    throw error;
+  }
+};
 
 export const fetchClientAppointments = async (clientId: number): Promise<ClientAppointment[]> =>{
   try {
@@ -519,7 +611,14 @@ export const fetchEmployeesByService = async (serviceId: number): Promise<Employ
 
 export const updateUserPersonalInfo = async (userId: number, form: UserUpdateForm): Promise<void> => {  
   try {
-    await axios.put(`${BASE_URL}/user/${userId}`, form);
+    const token = localStorage.getItem('accessToken');
+    await axios.put(`${BASE_URL}/user/${userId}`, form, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   } catch (error) {
     console.error("Failed to update user personal info:", error);
     throw error;
@@ -528,11 +627,18 @@ export const updateUserPersonalInfo = async (userId: number, form: UserUpdateFor
 
 export const updateEmployeeSpecializations = async (employeeId: number, specializations: Specialization[]): Promise<Specialization[]> => {
   try {
+    const token = localStorage.getItem('accessToken');
     const specializationPayload = specializations.map(spec => ({
-      id: spec.id, // Only include this if it's already stored; otherwise, it could be undefined for new specs
-      specialization: spec.name // Ensure this matches the backend expected enum value
+      id: spec.id, 
+      specialization: spec.name 
     }));
-    const response = await axios.put(`${BASE_URL}/employee/${employeeId}/specializations`, { specializations: specializationPayload });
+    const response = await axios.put(`${BASE_URL}/employee/${employeeId}/specializations`, { specializations: specializationPayload }, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Failed to update employee specializations:", error);
@@ -559,17 +665,32 @@ export const fetchEmployeeSchedule = async (employeeId: number): Promise<Schedul
 
 export const updateSchedule = async (scheduleId: number, schedule: ScheduleRequest): Promise<ScheduleRequest> => {
   try {
-    const response = await axios.put(`${BASE_URL}/schedule/${scheduleId}`, schedule);
+    const token = localStorage.getItem('accessToken');
+    console.log(token);
+    const response = await axios.put(`${BASE_URL}/schedule/${scheduleId}`, schedule,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, 
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Failed to update schedule:", error);
     throw error;
   }
-}
+};
 
 export const addEmployeeSchedule = async (employeeId: number, schedule: ScheduleRequest): Promise<ScheduleRequest> => {
   try {
-    const response = await axios.post(`${BASE_URL}/schedule/employee/${employeeId}`, schedule);
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.post(`${BASE_URL}/schedule/employee/${employeeId}`, schedule,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Failed to add employee schedule:", error);
@@ -580,7 +701,14 @@ export const addEmployeeSchedule = async (employeeId: number, schedule: Schedule
 
 export const addSalonSchedule = async (salonId: string, schedule: ScheduleRequest): Promise<ScheduleRequest> => {
   try {
-    const response = await axios.post(`${BASE_URL}/schedule/${salonId}`, schedule);
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.post(`${BASE_URL}/schedule/${salonId}`, schedule,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Failed to add schedule:", error);
@@ -590,7 +718,14 @@ export const addSalonSchedule = async (salonId: string, schedule: ScheduleReques
 
 export const deleteSchedule = async (scheduleId: number): Promise<void> => {
   try {
-    await axios.delete(`${BASE_URL}/schedule/${scheduleId}`);
+    const token = localStorage.getItem('accessToken');
+    await axios.delete(`${BASE_URL}/schedule/${scheduleId}`, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   } catch (error) {
     console.error("Failed to delete schedule:", error);
     throw error;
@@ -607,8 +742,7 @@ export const loadSpecializations = async () => {
   }
 };
 
-// Search salons by nearby location
-export const fetchSalonsByLocation = async (latitude: number, longitude: number, radius: number): Promise<Salon[]> => {
+export const fetchSalonsNearLocation = async (latitude: number, longitude: number, radius: number): Promise<Salon[]> => {
   try {
     const response = await axios.get(`${BASE_URL}/salon/nearby`, {
       params: { latitude, longitude, radius }
@@ -622,7 +756,14 @@ export const fetchSalonsByLocation = async (latitude: number, longitude: number,
 
 export const fetchLocation = async (salonId: number): Promise<Location> => {  
   try {
-    const response = await axios.get(`${BASE_URL}/salon/${salonId}/location`);
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.get(`${BASE_URL}/salon/${salonId}/location`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Failed to load salon location:", error);
@@ -630,9 +771,41 @@ export const fetchLocation = async (salonId: number): Promise<Location> => {
   }
 }
 
+export const fetchSalonsByLocation = async (salonId: number): Promise<Salon[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/location/${salonId}/salons`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to load salon location:", error);
+    throw error;
+  }
+}
+
+export const fetchLocations = async (page: number = 0, size: number = 10): Promise<PaginatedResponse<Location>> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/location`, {
+      params: {
+        page,
+        size,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to load locations:", error);
+    throw error;
+  }
+};
+
 export const updateSalonLocation = async (locationId: string, location: Location): Promise<Location> => {
   try {
-    const response= await axios.put(`${BASE_URL}/location/${locationId}`, location);
+    const token = localStorage.getItem('accessToken');
+    const response= await axios.put(`${BASE_URL}/location/${locationId}`, location, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Failed to update salon location:", error);
@@ -653,7 +826,14 @@ export interface LocationRequest {
 
 export const createSalonLocation = async (salonId: string, locationRequest: LocationRequest): Promise<Location> => {
   try {
-    const response = await axios.post(`${BASE_URL}/location/${salonId}`, locationRequest);
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.post(`${BASE_URL}/location/${salonId}`, locationRequest, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Failed to create salon location:", error);
@@ -663,7 +843,14 @@ export const createSalonLocation = async (salonId: string, locationRequest: Loca
 
 export const deleteSalonLocation = async (locationId: string): Promise<void> => {
   try {
-    await axios.delete(`${BASE_URL}/location/${locationId}`);
+    const token = localStorage.getItem('accessToken');
+    await axios.delete(`${BASE_URL}/location/${locationId}`, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   } catch (error) {
     console.error("Failed to delete salon location:", error);
     throw error;
@@ -680,8 +867,14 @@ export interface ServiceRequest {
 
 export const addNewService = async (salonId: string, service: ServiceRequest): Promise<ServiceRequest> => {
   try {
-    console.log('Adding service:', service);
-    const response = await axios.post(`${BASE_URL}/salon_service/${salonId}`, service);
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.post(`${BASE_URL}/salon_service/${salonId}`, service, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data; 
   } catch (error) {
     console.error("Failed to add new service:", error);
@@ -692,7 +885,14 @@ export const addNewService = async (salonId: string, service: ServiceRequest): P
 
 export const deleteService = async (serviceId: number): Promise<void> => {
   try {
-    await axios.delete(`${BASE_URL}/salon_service/${serviceId}`);
+    const token = localStorage.getItem('accessToken');
+    await axios.delete(`${BASE_URL}/salon_service/${serviceId}`, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   } catch (error) {
     console.error("Failed to delete service:", error);
     throw error;
@@ -702,7 +902,14 @@ export const deleteService = async (serviceId: number): Promise<void> => {
 
 export const updateService = async (serviceId: number, service: Service): Promise<Service> => {
   try {
-    const response = await axios.put(`${BASE_URL}/salon_service/${serviceId}`, service);
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.put(`${BASE_URL}/salon_service/${serviceId}`, service, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Failed to update salon services:", error);
@@ -712,7 +919,14 @@ export const updateService = async (serviceId: number, service: Service): Promis
 
 export const updateSalonInfo = async (salonId: number, SalonRequest: Partial<Salon>): Promise<Salon> => {
   try {
-    const response = await axios.put(`${BASE_URL}/salon/${salonId}`, SalonRequest);
+    const token = localStorage.getItem('accessToken');
+    const response = await axios.put(`${BASE_URL}/salon/${salonId}`, SalonRequest, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error('Error updating salon info:', error);
@@ -750,7 +964,6 @@ export const fetchSalonsByCity = async (city: string) => {
     }
 };
 
-// Example fetch function in apiService.ts
 export const fetchSalonsByName = async (salonName: string) => {
   const response = await fetch(`${BASE_URL}/salon/search?name=${salonName}`);
   if (!response.ok) {
@@ -762,7 +975,14 @@ export const fetchSalonsByName = async (salonName: string) => {
 
 export const deleteEmployee = async (employeeId: number): Promise<void> => {
   try {
-    await axios.delete(`${BASE_URL}/employee/${employeeId}`);
+    const token = localStorage.getItem('accessToken');
+    await axios.delete(`${BASE_URL}/employee/${employeeId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   } catch (error) {
     console.error("Failed to delete employee:", error);
     throw error;

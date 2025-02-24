@@ -8,26 +8,21 @@
        url('assets/fonts/Migatsu-Medium.otf') format('otf'),
        url('assets/fonts/Migatsu-Medium.ttf') format('truetype');
 }
-
-
 @font-face {
   font-family: 'BunlayFont';
   src:
        url('assets/fonts/Bunlay.otf') format('otf');
 }
-
 @font-face {
   font-family: 'AuromiyaFont';
   src:
        url('assets/fonts/Auromiya.ttf') format('truetype');
 }
-
 @font-face {
   font-family: 'PaytoneOneFont';
   src:
        url('assets/fonts/PaytoneOne-Regular.ttf') format('truetype');
 }
-
 @font-face {
   font-family: 'LatoFont';
   src:
@@ -35,7 +30,6 @@
        url('assets/fonts/Lato/Lato-LightItalic.ttf') format('truetype')
        url('assets/fonts/Lato/Lato-Regular.ttf') format('truetype');
 }
-
 @font-face {
   font-family: 'PoppinsFont';
   src:
@@ -45,8 +39,6 @@
        url('assets/fonts/Poppins/Poppins-Medium.ttf') format('truetype'),
        url('assets/fonts/Poppins/Poppins-Bold.ttf') format('truetype');
 }
-
-
 body {
   font-family: PoppinsFont, sans-serif;
 }

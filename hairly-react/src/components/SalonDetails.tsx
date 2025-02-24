@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Scissors, Star } from 'lucide-react';
-import {Button} from "@/components/ui/button";
-import { Salon, fetchSalonDetails, Service, fetchEmployeeDetails} from '../apiService';
+import { Button } from "@/components/ui/button";
+import { Salon, fetchSalonDetails, Service, fetchEmployeeDetails } from '../apiService';
 import { fetchEmployeesBySalon, fetchSalonReviews, fetchSalonSchedule, fetchSalonServices } from '../salonService';
 import { Employee, Review, Schedule } from '../apiService';
 import EmployeesCard from './EmployeesCard.tsx';
@@ -12,9 +13,10 @@ import SalonServices from './SalonServices.tsx';
 import LocationCard from './LocationCard.tsx';
 import SalonScheduleView from './SalonScheduleView.tsx';
 import ReactDOM from 'react-dom';
-import SalonAppointmentBooking from './SalonAppointmentBooking.tsx';
+import SalonAppointmentBooking from './AppointmentBooking.tsx';
 
 const SalonDetails: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [salon, setSalon] = useState<Salon | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -24,7 +26,7 @@ const SalonDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [ setSelectedService] = useState<Service | null>(null); 
+  const [setSelectedService] = useState<Service | null>(null); 
 
   useEffect(() => {
     const loadSalon = async () => {
@@ -49,7 +51,7 @@ const SalonDetails: React.FC = () => {
         );
         setEmployees(detailedEmployees);
       } catch (err) {
-        setError('Failed to load salon details');
+        setError(t('error.loadingSalonDetails'));
         console.error(err);
       } finally {
         setLoading(false);
@@ -57,18 +59,18 @@ const SalonDetails: React.FC = () => {
     };
 
     loadSalon();
-  }, [id]);
+  }, [id, t]);
 
   if (loading) {
-    return <div>Loading salon...</div>;
+    return <div>{t('loadingSalon')}</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>{t('error')}: {error}</div>;
   }
 
   if (!salon) {
-    return <div>No salon found</div>;
+    return <div>{t('noSalonFound')}</div>;
   }
 
   return (
@@ -80,15 +82,20 @@ const SalonDetails: React.FC = () => {
               <CardTitle className="flex items-center gap-2">
                 <Scissors className="w-6 h-6" />
                 {salon.name}
+                <Button 
+            onClick={() => setShowBookingModal(true)} 
+            className="rounded-xl ml-16 bg-rose-700 text-white hover:bg-rose-800">
+            {t('bookAppointment')}
+          </Button>
               </CardTitle>
-              </CardHeader>
-              <CardContent>{salon.description}</CardContent>
+            </CardHeader>
+            <CardContent>{salon.description}</CardContent>
           </Card>
 
-          <EmployeesCard salonId={salon.id} isOwnerDashboard={false} />
+          <EmployeesCard salonId={id} isOwnerDashboard={false} />
           <Card>
             <CardHeader className="bg-gray-100 rounded-xl pt-4 pb-4 mb-3">
-              <CardTitle>Recent Ratings</CardTitle>
+              <CardTitle>{t('recentRatings')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -111,19 +118,7 @@ const SalonDetails: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-          <LocationCard salonId={salon.id} isOwner={false} />
-        </div>
-
-        {/* Right Column */}
-        <div className="space-y-8">
-          <ImageCarousel images={salon.salonImages} />
-          <SalonServices services={salon.services} setSelectedService={setSelectedService} />
-          <Button 
-            onClick={() => setShowBookingModal(true)} 
-            className="rounded-xl ml-16 bg-rose-700 text-white hover:bg-rose-800"
-          >
-            Book Appointment
-          </Button>
+          <SalonScheduleView schedule={schedule} />
           {showBookingModal && ReactDOM.createPortal(
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-xl">
               <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative max-h-[80vh] overflow-y-auto">
@@ -136,13 +131,18 @@ const SalonDetails: React.FC = () => {
                 <SalonAppointmentBooking 
                   employees={employees} 
                   services={services} 
-                  salonId={salon.id}
+                  salonId={parseInt(id, 10)}
                 />
               </div>
             </div>,
             document.body
           )}
-          <SalonScheduleView schedule={schedule} />
+        </div>
+
+        <div className="space-y-8">
+          <ImageCarousel images={salon.salonImages} />
+          <SalonServices services={salon.services} setSelectedService={setSelectedService} />
+          <LocationCard salonId={id} isOwner={false} />
         </div>
       </div>
     </div>

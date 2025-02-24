@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 
-// Configuration constants
 const TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 const EXPIRY_KEY = 'tokenExpiry';
@@ -13,15 +12,12 @@ export function saveTokens(accessToken: string, refreshToken: string, expiresIn:
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   localStorage.setItem(EXPIRY_KEY, expiryTime.toString());
 }
-
-// Function to remove tokens
 export function removeTokens() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(EXPIRY_KEY);
 }
 
-// Function to check if the token has expired
 export function isTokenExpired(): boolean {
   const expiryTime = parseInt(localStorage.getItem(EXPIRY_KEY) || '0', 10);
   return getCurrentTime() >= expiryTime;

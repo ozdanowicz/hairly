@@ -3,9 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import ReviewListComponent from "../components/ReviewListing"; 
 import { Link as NavLink } from "react-router-dom";
-import { Salon } from "../apiService"; // Import Salon from the service layer
+import { Salon } from "../apiService"; 
 import ImageCarousel from "../components/ImageCarousel";
 import RatingStars from "../components/RatingStars";
+import { useTranslation } from 'react-i18next';
+
 
 interface SalonCardProps {
   salon: Salon;
@@ -14,6 +16,7 @@ interface SalonCardProps {
 export const SalonCard: React.FC<SalonCardProps> = ({ salon }) => {
   const [showReviews, setShowReviews] = useState(false);
   const images = salon.salonImages ?? [];
+  const {t} = useTranslation();
 
   console.log(salon);
 
@@ -32,25 +35,25 @@ export const SalonCard: React.FC<SalonCardProps> = ({ salon }) => {
               </div>
               <div className="space-y-2">
                 <p className="text-sm">
-                  <span className="font-semibold">Location: </span> 
-                  {`${salon.location?.street ?? 'Unknown street'} ${salon.location?.buildingNumber ?? ''}, ${salon.location?.city ?? 'Unknown city'}`}
+                  <span className="font-semibold">{t('location.title')}: </span> 
+                  {`${salon.location?.street ?? t('location.noStreet')} ${salon.location?.buildingNumber ?? ''}, ${salon.location?.city ?? t('location.noCity')}`}
                 </p>
                 <p className="text-sm">
-                  <span className="font-semibold">Price Range: </span> 
+                  <span className="font-semibold">{t('salonInfo.priceRange')}: </span> 
                   {salon.priceRange && salon.priceRange.length > 0 
                     ? `${salon.priceRange[0]} - ${salon.priceRange[1]} zl`
-                    : "Unknown price range"}
+                    : "-"}
                 </p>
                 <div className="flex items-center">
-                  <span className="font-semibold text-sm mr-2">Rating:</span>
+                  <span className="font-semibold text-sm mr-2">{t('salonInfo.rating')}:</span>
                   <RatingStars rating={salon.averageRating ?? 0} />
-                  <span className="ml-2 text-sm text-gray-600">({salon.averageRating ?? "No rating"})</span>
+                  <span className="ml-2 text-sm text-gray-600">({salon.averageRating.toFixed(2) ?? t('salonInfo.noRating')})</span>
                 </div>
                 <button
                   onClick={() => setShowReviews(true)}
                   className="text-rose-700 hover:underline text-sm font-medium"
                 >
-                   Reviews
+                   {t('salonInfo.reviews')}
                 </button>
               </div>
             </div>
@@ -73,7 +76,7 @@ export const SalonCard: React.FC<SalonCardProps> = ({ salon }) => {
                 onClick={() => setShowReviews(false)}
                 className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
               >
-                Close
+                {t('button.close')}
               </button>
               <ReviewListComponent salonId={salon.id} />
             </div>

@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,13 +14,9 @@ export function AddFreeDates() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setStatus('idle')
-
-    // Simulate API call to Google Calendar
     try {
-      // In a real application, you would make an API call to Google Calendar here
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Simulating a successful response
       setStatus('success')
     } catch (error) {
       setStatus('error')

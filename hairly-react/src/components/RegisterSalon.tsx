@@ -28,7 +28,6 @@ const RegisterSalon = () => {
 
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Update salon form fields
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setSalonData((prevData) => ({
@@ -37,7 +36,6 @@ const RegisterSalon = () => {
     }));
   };
 
-  // Update nested location fields
   const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSalonData((prevData) => ({
@@ -49,7 +47,6 @@ const RegisterSalon = () => {
     }));
   };
 
-  // Handle changes in service fields
   const handleNewServiceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setNewService((prevService) => ({
@@ -59,20 +56,18 @@ const RegisterSalon = () => {
   };
 
   const addService = () => {
-    // Validate that all necessary fields are filled out
     if (!newService.name || !newService.description || !newService.price || !newService.durationMinutes) {
       alert("Please fill out all fields for the service.");
       return;
     }
 
-    // Convert the newService object to match the required types in Service
     const completeService: Service = {
-      id: Date.now(), // Unique identifier (or use another approach)
-      salonId: 0,     // Placeholder value
+      id: Date.now(), 
+      salonId: 0,    
       name: newService.name,
       description: newService.description,
-      price: parseFloat(newService.price), // Convert string to number
-      durationMinutes: parseInt(newService.durationMinutes), // Convert string to number
+      price: parseFloat(newService.price), 
+      durationMinutes: parseInt(newService.durationMinutes), r
     };
 
     setSalonData((prevData) => ({
@@ -83,7 +78,6 @@ const RegisterSalon = () => {
     setNewService({ name: "", description: "", price: "", durationMinutes: "" });
   };
 
-  // Remove service from list
   const removeService = (index: number) => {
     setSalonData((prevData) => ({
       ...prevData,
@@ -91,7 +85,6 @@ const RegisterSalon = () => {
     }));
   };
 
-  // Form submission handler
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -102,7 +95,6 @@ const RegisterSalon = () => {
 
     const { latitude, longitude } = salon.location;
 
-    // Validate latitude and longitude are numbers
     const parsedLatitude = parseFloat(latitude);
     const parsedLongitude = parseFloat(longitude);
 
@@ -181,7 +173,6 @@ const RegisterSalon = () => {
                   />
                 </div>
 
-                {/* Location Fields */}
                 <div>
                   <label className="block rounded-xl mb-2 text-sm font-bold text-rose-900 dark:text-black">
                     Location Details
@@ -257,7 +248,6 @@ const RegisterSalon = () => {
                   </div>
                 </div>
 
-                {/* Services */}
                 <div>
                   <label className="block mb-2 text-sm font-bold text-rose-900 dark:text-black">
                     Add Custom Services
@@ -305,7 +295,6 @@ const RegisterSalon = () => {
                   </div>
                 </div>
 
-                {/* Display added services */}
                 <div>
                   {salon.services.length > 0 && (
                     <div className="mt-4">
@@ -328,7 +317,6 @@ const RegisterSalon = () => {
                   )}
                 </div>
 
-                {/* Terms and conditions */}
                 <div className="flex items-start">
                   <div className="flex items-center h-5">
                     <input
@@ -347,7 +335,6 @@ const RegisterSalon = () => {
                   </div>
                 </div>
 
-                {/* Submit button */}
                 <div>
                   <button
                     type="submit"

@@ -5,6 +5,7 @@ import { Save, Edit, Plus, Trash, X } from "lucide-react";
 import { DayOfWeek, ScheduleRequest, addSalonSchedule, updateSchedule, deleteSchedule, Schedule, ScheduleType } from "@/apiService";
 import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from 'react-i18next';
 
 interface ScheduleCardProps {
   salonId: string;
@@ -16,6 +17,7 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
   const [editedSchedule, setEditedSchedule] = useState<Schedule[]>(schedule);
   const [isEditing, setIsEditing] = useState(false);
   const [newDay, setNewDay] = useState<ScheduleRequest | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (schedule) {
@@ -25,7 +27,6 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
 
   const handleTimeChange = (index: number, field: keyof ScheduleRequest, value: string) => {
     const updatedSchedule = [...editedSchedule];
-    // Ensure the time is in "HH:mm" format
     updatedSchedule[index] = { ...updatedSchedule[index], [field]: value || null };
     setEditedSchedule(updatedSchedule);
   };
@@ -37,7 +38,6 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
 
   const handleNewDayChange = (field: keyof ScheduleRequest, value: string) => {
     if (newDay) {
-      // Save the time value as a simple string in "HH:mm" format
       setNewDay({ ...newDay, [field]: value || null });
     }
   };
@@ -52,9 +52,7 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
     const end1Min = toMinutes(end1);
     const start2Min = toMinutes(start2);
     const end2Min = toMinutes(end2);
-  
-    // Check if times overlap
-    return !(end1Min <= start2Min || end2Min <= start1Min);
+      return !(end1Min <= start2Min || end2Min <= start1Min);
   };
 
   const groupedSchedules = editedSchedule.reduce((acc, curr) => {
@@ -66,7 +64,6 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
     return acc;
   }, {} as Record<string, Schedule[]>);
 
-  // Get the days sorted
   const sortedDays = Object.keys(groupedSchedules).sort((a, b) => {
     return Object.values(DayOfWeek).indexOf(a) - Object.values(DayOfWeek).indexOf(b);
   });
@@ -108,10 +105,10 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
         const savedDay = await addSalonSchedule(salonId, newDay);
         setEditedSchedule([...editedSchedule, savedDay]);
         setNewDay(null);
-        toast.success("Day added successfully");
+        toast.success(t('toast.scheduleAdd'));
       } catch (error) {
         console.error("Error adding new day", error);
-        toast.error("Failed to add new day");
+        toast.error(t('toast.error.scheduleAdd'));
       }
     }
   };
@@ -122,32 +119,29 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
         await deleteSchedule(scheduleId);
         const updatedSchedule = editedSchedule.filter((_, i) => i !== index);
         setEditedSchedule(updatedSchedule);
-        toast.success("Schedule removed successfully");
+        toast.success(t('toast.scheduleDelete'));
     } catch (error) {
         console.error("Error removing schedule", error);
-        toast.error("Failed to remove schedule");
+        toast.error(t('toast.error.scheduleDelete'));
     }
     
   };
 
   const handleSave = async () => {
     try {
-      // Check for any time overlap for each day
       for (let i = 0; i < editedSchedule.length; i++) {
         const day = editedSchedule[i];
   
-        // Check if the current time range is valid
         if (!isTimeValid(day.openingTime, day.closingTime)) {
-          toast.error("Opening time must be before closing time");
+          toast.error(t('toast.error.scheduleHours'));
           return;
         }
   
-        // Check for overlap with other days for the same day of the week
         for (let j = 0; j < editedSchedule.length; j++) {
           if (i !== j && day.dayOfWeek === editedSchedule[j].dayOfWeek) {
             const otherDay = editedSchedule[j];
             if (doesOverlap(day.openingTime, day.closingTime, otherDay.openingTime, otherDay.closingTime)) {
-              toast.error(`The schedule for ${day.dayOfWeek.charAt(0).toUpperCase() + day.dayOfWeek.slice(1).toLowerCase()} overlaps with another schedule.`);
+              toast.error(t('toast.error.scheduleHoursOverlap'));
               return;
             }
           }
@@ -162,13 +156,13 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
       setIsEditing(false);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to save schedule");
+      toast.error(t('toast.scheduleSave'));
     }
   };
   
 
   const handleCancel = () => {
-    setEditedSchedule(schedule); // Reset to the initial schedule
+    setEditedSchedule(schedule);
     setIsEditing(false);
     setNewDay(null);
   };
@@ -176,19 +170,19 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 pt-4 bg-gray-100 mb-4 rounded-xl">
-        <CardTitle>Schedule</CardTitle>
+        <CardTitle>{t('schedule.title')}</CardTitle>
         {isEditing ? (
           <div className="flex gap-2">
             <Button className="border-none bg-white rounded-xl" onClick={handleSave} variant="outline" size="sm">
-              <Save className="w-4 h-4 mr-2" /> Save
+              <Save className="w-4 h-4 mr-2" /> {t('button.save')}
             </Button>
             <Button className="border-none bg-white rounded-xl" onClick={handleCancel} variant="ghost" size="sm">
-              <X className="w-4 h-4 mr-2" /> Cancel
+              <X className="w-4 h-4 mr-2" /> {t('button.cancel')}
             </Button>
           </div>
         ) : (
           <Button className="border-none bg-white rounded-xl" onClick={() => setIsEditing(true)} variant="outline" size="sm">
-            <Edit className="w-4 h-4 mr-2" /> Edit
+            <Edit className="w-4 h-4 mr-2" /> {t('button.edit')}
           </Button>
         )}
       </CardHeader>
@@ -200,13 +194,13 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
             variant="outline"
             size="sm"
           >
-            <Plus className="w-4 h-4" /> Add Day
+            <Plus className="w-4 h-4" /> {t('button.addDay')}
           </Button>
         )}
 
         {newDay && (
           <div className="border-b pb-4 mb-4 relative">
-            <Label className="font-bold">Day</Label>
+            <Label className="font-bold">{t('schedule.day')}</Label>
             <select
               className="w-full p-2 border rounded mb-2"
               value={newDay.dayOfWeek}
@@ -218,14 +212,14 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
                 </option>
               ))}
             </select>
-            <Label className="font-bold">Opening Time</Label>
+            <Label className="font-bold">{t('schedule.open')}</Label>
             <input
               className="w-full p-2 border rounded mb-2"
               type="time"
               value={newDay.openingTime || ""}
               onChange={(e) => handleNewDayChange("openingTime", e.target.value)}
             />
-            <Label className="font-bold">Closing Time</Label>
+            <Label className="font-bold">{t('schedule.close')}</Label>
             <input
               className="w-full p-2 border rounded mb-2"
               type="time"
@@ -233,7 +227,7 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
               onChange={(e) => handleNewDayChange("closingTime", e.target.value)}
             />
             <Button className="absolute right-0 border-none bg-rose-400 text-white rounded-xl" onClick={handleSaveNewDay} variant="outline" size="sm">
-              <Save className="w-4 h-4" /> Save
+              <Save className="w-4 h-4" /> {t('button.save')}
             </Button>
           </div>
         )}
@@ -245,7 +239,7 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
                 {isEditing ? (
                   <div className="space-y-3">
                     <div>
-                      <Label className="font-bold">Day</Label>
+                      <Label className="font-bold">{t('schedule.day')}</Label>
                       <select
                         className="w-full p-2 border rounded mb-2"
                         value={day.dayOfWeek}
@@ -259,7 +253,7 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
                       </select>
                     </div>
                     <div>
-                      <Label className="font-bold">Opening Time</Label>
+                      <Label className="font-bold">{t('schedule.open')}</Label>
                       <input
                         className="w-full p-2 border rounded"
                         type="time"
@@ -268,7 +262,7 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
                       />
                     </div>
                     <div>
-                      <Label className="font-bold">Closing Time</Label>
+                      <Label className="font-bold">{t('schedule.close')}</Label>
                       <input
                         className="w-full p-2 border rounded"
                         type="time"
@@ -282,21 +276,21 @@ const SalonScheduleCard = ({ salonId, schedule, onSave }: ScheduleCardProps) => 
                       variant="outline"
                       size="sm"
                     >
-                      <Trash className="w-4 h-4" /> Delete
+                      <Trash className="w-4 h-4" /> {t('button.delete')}
                     </Button>
                   </div>
                 ) : (
                   <>
                     <h3 className="font-semibold">{day.dayOfWeek.charAt(0).toUpperCase() + day.dayOfWeek.slice(1).toLowerCase()}</h3>
-                    <p>Open: {day.openingTime.slice(0,5) || "N/A"}</p>
-                    <p>Close: {day.closingTime.slice(0,5) || "N/A"}</p>
+                    <p>{t('schedule.open')}: {day.openingTime.slice(0,5) || "N/A"}</p>
+                    <p>{t('schedule.close')}: {day.closingTime.slice(0,5) || "N/A"}</p>
                   </>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-gray-500">No schedule available.</p>
+          <p className="text-gray-500">{t('schedule.noSchedule')}</p>
         )}
       </CardContent>
     </Card>

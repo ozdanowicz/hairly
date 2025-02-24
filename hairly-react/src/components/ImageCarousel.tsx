@@ -39,7 +39,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({ images = [] }) => 
   };
 
   return (
-    <div className="w-full h-[300px] md:h-[400px] rounded-xl relative overflow-hidden">
+    <div className="w-full h-[300px] md:h-[400px] rounded-xl relative overflow-hidden z-10">
       {images.length > 0 ? (
         <>
           <AnimatePresence initial={false} custom={direction}>
@@ -58,19 +58,19 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({ images = [] }) => 
           </AnimatePresence>
           <button
             onClick={prevImage}
-            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-colors z-10"
+            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-colors z-20"
             aria-label="Previous image"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <button
             onClick={nextImage}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-colors z-10"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-colors z-20"
             aria-label="Next image"
           >
             <ChevronRight className="w-6 h-6" />
           </button>
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
             {images.map((_, index) => (
               <button
                 key={index}

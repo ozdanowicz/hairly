@@ -4,33 +4,45 @@ import { Button } from '@/components/ui/button';
 import collageBackground from '@/assets/back1.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, isTokenExpired, saveTokens } from '../tokenService';
+import { useTranslation } from 'react-i18next';
 
 const Login: React.FC = () => {
   const { token, setToken } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
-    if (token && !isTokenExpired()) {
-      navigate('/profile');
-    }
-  }, [token, navigate]);
+    const checkTokenInLocalStorage = () => {
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken && !isTokenExpired()) {
+        setToken(accessToken);
+        navigate('/profile');
+      } else {
+        fetch('http://localhost:8080/api/v1/auth/check-token', {
+          method: 'GET',
+          credentials: 'include', 
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.accessToken) {
+              saveTokens(data.accessToken, data.refreshToken, data.expiresIn);
+              setToken(data.accessToken);
+              localStorage.setItem('accessToken', data.accessToken);
+              navigate('/profile');
+            }
+          })
+          .catch(error => {
+            console.error('Failed to check token with backend:', error);
+          });
+      }
+    };
+
+    checkTokenInLocalStorage();
+  }, [navigate, setToken]);
 
   const handleGoogleLogin = () => {
     window.location.href = `http://localhost:8080/login/oauth2/code/google`; 
   };
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessToken = urlParams.get('access_token');
-    const refreshToken = urlParams.get('refresh_token');
-    const expiresIn = urlParams.get('expires_in');
-
-    if (accessToken && refreshToken && expiresIn) {
-      saveTokens(accessToken, refreshToken, parseInt(expiresIn, 10));
-      setToken(accessToken);
-      navigate('/profile');
-    }
-  }, [navigate, setToken]);
 
   return (
     <section
@@ -62,7 +74,7 @@ const Login: React.FC = () => {
       d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
     />
   </svg>
-        <h2 className="text-3xl font-semibold text-center">Sign in with Google</h2>
+        <h2 className="text-3xl font-semibold text-center">{t('signInGoogle')}</h2>
         <Button
             type="button"
             onClick={handleGoogleLogin}
@@ -92,7 +104,7 @@ const Login: React.FC = () => {
               />
             </g>
           </svg>
-          Sign in with Google
+          {t('signIn')} 
         </Button>
       </CardContent>
     </Card>

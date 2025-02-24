@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Adjust based on your setup
-import { Button } from "@/components/ui/button"; // Adjust based on your setup
-import { Save, Edit } from "lucide-react"; // Adjust based on your setup
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button"; 
+import { Save, Edit } from "lucide-react"; 
+import { useTranslation } from 'react-i18next';
 
 interface PersonalInfoCardProps {
-  info: Record<string, string>; // Generic key-value pairs for personal info
+  info: Record<string, string>; 
   editMode: boolean;
   onEdit: () => void;
   onSave: (updatedInfo: Record<string, string>) => void;
-  isEmailEditable?: boolean; // Optional flag to disable editing for email
+  isEmailEditable?: boolean; 
 }
 
 const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
@@ -19,6 +20,7 @@ const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
   isEmailEditable = true,
 }) => {
   const [editableInfo, setEditableInfo] = useState(info);
+  const {t} = useTranslation();
 
   const handleInputChange = (key: string, value: string) => {
     setEditableInfo((prev) => ({
@@ -34,7 +36,7 @@ const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
   return (
     <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-2 bg-gray-100 rounded-xl mb-2">
-      <CardTitle>Personal Information</CardTitle>
+      <CardTitle>{t('personalInfo.title')}</CardTitle>
       <Button
         className="border-none bg-white rounded-xl"
         variant="ghost"
@@ -47,9 +49,9 @@ const PersonalInfoCard: React.FC<PersonalInfoCardProps> = ({
     <CardContent>
       <div className="space-y-2">
         {Object.entries(editableInfo).map(([key, value]) => {
-          if (key === "id") return null; // Skip rendering the ID
+          if (key === "id") return null; 
           return (
-            <div key={key} className="flex justify-between items-center py-1.5"> {/* Ensure `key` is here */}
+            <div key={key} className="flex justify-between items-center py-1.5"> 
               <span className="font-bold text-sm">
                 {key.charAt(0).toUpperCase() + key.slice(1)}:
               </span>

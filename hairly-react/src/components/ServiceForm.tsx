@@ -17,7 +17,7 @@ function ServiceForm({ salonId, services, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     await updateSalonServices(salonId, serviceState);
-    onSave(); // Notify parent of update success
+    onSave(); 
   };
 
   return (

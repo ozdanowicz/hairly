@@ -6,6 +6,7 @@ import { Service, ServiceRequest } from "@/apiService";
 import { addNewService, deleteService, updateService } from "@/apiService";
 import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from 'react-i18next';
 
 interface ServicesCardProps {
   salonId: string;
@@ -14,10 +15,11 @@ interface ServicesCardProps {
 }
 
 const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => {
+  const { t } = useTranslation();  
   const [editedServices, setEditedServices] = useState<ServiceRequest[]>(services);
   const [isEditing, setIsEditing] = useState(false);
   const [newService, setNewService] = useState<ServiceRequest | null>(null);
-  const [error, setError] = useState<string | null>(null); // For validation error
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (services) {
@@ -33,7 +35,7 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
 
   const handleAddServiceClick = () => {
     setNewService({ name: "", description: "", price: 0, durationMinutes: 0 });
-    setError(null); // Clear error when adding a new service
+    setError(null);
   };
 
   const handleNewServiceChange = (field: keyof Service, value: string | number) => {
@@ -44,10 +46,10 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
 
   const validateService = (service: ServiceRequest) => {
     if (!service.name || service.name.trim() === "") {
-      return "Service name cannot be empty";
+      return t('service.nameEmpty'); 
     }
     if (service.price <= 0) {
-      return "Service price must be greater than 0";
+      return t('service.priceInvalid');
     }
     return null; 
   };
@@ -56,7 +58,7 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
     if (newService) {
       const validationError = validateService(newService);
       if (validationError) {
-        setError(validationError); // Set error message
+        setError(validationError);
         return;
       }
 
@@ -65,10 +67,10 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
         setEditedServices([...editedServices, savedService]);
         setNewService(null);
         if (!isEditing) setIsEditing(true);
-        toast.success(`Service ${newService.name} added successfully`);
+        toast.success(t('service.addedSuccess', { name: newService.name }));
       } catch (error) {
         console.error("Error adding new service:", error);
-        toast.error("Failed to add new service");
+        toast.error(t('service.addFailed'));
       }
     }
   };
@@ -85,64 +87,62 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
 
   const handleSave = async () => {
     let hasError = false;
-  
+
     try {
       await Promise.all(
         editedServices.map(async (service) => {
           const validationError = validateService(service);
           if (validationError) {
-            setError(validationError); 
-            hasError = true; 
+            setError(validationError);
+            hasError = true;
           } else {
-            setError(null); 
+            setError(null);
             if (service.id) {
               await updateService(service.id, service);
             }
           }
         })
       );
-  
+
       if (hasError) {
-        toast.error("Name cannot be empty");
-        return; 
+        toast.error(t('service.nameEmpty')); 
+        return;
       }
-  
+
       onSave(editedServices);
-      setIsEditing(false); 
-      setError(null); 
-  
-      toast.success("Services updated successfully!");
+      setIsEditing(false);
+      setError(null);
+
+      toast.success(t('service.updatedSuccess'));
     } catch (error) {
       console.error("Error saving services:", error);
-      toast.error("Failed to save services.");
+      toast.error(t('service.saveFailed'));
     }
   };
-  
 
   const handleCancel = () => {
     setEditedServices(services);
     setIsEditing(false);
     setNewService(null);
-    setError(null); // Clear error on cancel
+    setError(null);
   };
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 pt-4 bg-gray-100 mb-4 rounded-xl">
-        <CardTitle>
-          Services Offered</CardTitle>
+        <CardTitle>{t('service.title')}</CardTitle>
         {isEditing ? (
           <div className="flex gap-2">
             <Button className="border-none bg-white rounded-xl" onClick={handleSave} variant="outline" size="sm">
-              <Save className="w-4 h-4 mr-2" /> Save
+              <Save className="w-4 h-4 mr-2" /> {t('button.save')}
             </Button>
             <Button className="border-none bg-white rounded-xl" onClick={handleCancel} variant="ghost" size="sm">
-              <X className="w-4 h-4 mr-2" /> Cancel
+              <X className="w-4 h-4 mr-2" /> {t('button.cancel')}
             </Button>
           </div>
         ) : (
           <Button className="border-none bg-white rounded-xl" onClick={() => setIsEditing(true)} variant="outline" size="sm">
-            <Edit className="w-4 h-4 mr-2" /> Edit
+            <Edit className="w-4 h-4 mr-2" /> {t('button.edit')}
           </Button>
         )}
       </CardHeader>
@@ -154,7 +154,7 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
             variant="outline"
             size="sm"
           >
-            <Plus className="w-4 h-4" /> Add Service
+            <Plus className="w-4 h-4" /> {t('button.add')}
           </Button>
         )}
         {newService && (
@@ -163,7 +163,7 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
               className="w-full p-2 border rounded mb-2"
               value={newService.name}
               onChange={(e) => handleNewServiceChange("name", e.target.value)}
-              placeholder="Service Name"
+              placeholder={t('service.name')}
             />
             {error && !newService.name && <p className="text-red-500 text-sm">{error}</p>}
             <textarea
@@ -171,7 +171,7 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
               value={newService.description}
               onChange={(e) => handleNewServiceChange("description", e.target.value)}
               rows={2}
-              placeholder="Description"
+              placeholder={t('service.description')}
             />
             <div className="flex gap-2 mb-2">
               <input
@@ -179,7 +179,7 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
                 type="number"
                 value={newService.price}
                 onChange={(e) => handleNewServiceChange("price", parseFloat(e.target.value))}
-                placeholder="Price"
+                placeholder={t('service.price')}
               />
               {error && newService.price <= 0 && <p className="text-red-500 text-sm">{error}</p>}
               <input
@@ -187,7 +187,7 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
                 type="number"
                 value={newService.durationMinutes}
                 onChange={(e) => handleNewServiceChange("durationMinutes", parseInt(e.target.value))}
-                placeholder="Duration (minutes)"
+                placeholder={t('service.duration')}
               />
             </div>
             <Button
@@ -196,7 +196,7 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
               variant="outline"
               size="sm"
             >
-              <Save className="w-4 h-4" /> Save
+              <Save className="w-4 h-4" /> {t('button.save')}
             </Button>
           </div>
         )}
@@ -207,45 +207,45 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
                 {isEditing ? (
                   <div className="space-y-3">
                     <div>
-                      <Label className="font-bold">Name</Label>
+                      <Label className="font-bold">{t('service.name')}</Label>
                       <input
                         className="w-full p-2 border rounded"
                         value={service.name}
                         onChange={(e) => handleServiceChange(index, "name", e.target.value)}
-                        placeholder="Service Name"
+                        placeholder={t('service.name')}
                       />
                       {error && !service.name && <p className="text-red-500 text-sm">{error}</p>}
                     </div>
                     <div>
-                      <Label className="font-bold">Description</Label>
+                      <Label className="font-bold">{t('service.description')}</Label>
                       <textarea
                         className="w-full p-2 border rounded"
                         value={service.description}
                         onChange={(e) => handleServiceChange(index, "description", e.target.value)}
                         rows={2}
-                        placeholder="Description"
+                        placeholder={t('service.description')}
                       />
                     </div>
                     <div className="flex gap-2">
                       <div>
-                        <Label className="p-2 font-bold">Price</Label>
+                        <Label className="p-2 font-bold">{t('service.price')}</Label>
                         <input
                           className="p-2 border rounded w-1/2"
                           type="number"
                           value={service.price}
                           onChange={(e) => handleServiceChange(index, "price", parseFloat(e.target.value))}
-                          placeholder="Price"
+                          placeholder={t('service.price')}
                         />
                         {error && service.price <= 0 && <p className="text-red-500 text-sm">{error}</p>}
                       </div>
                       <div>
-                        <Label className="p-2 font-bold">Duration</Label>
+                        <Label className="p-2 font-bold">{t('service.duration')}</Label>
                         <input
                           className="p-2 border rounded w-1/2"
                           type="number"
                           value={service.durationMinutes}
                           onChange={(e) => handleServiceChange(index, "durationMinutes", parseInt(e.target.value))}
-                          placeholder="Duration (minutes)"
+                          placeholder={t('service.duration')}
                         />
                       </div>
                       <Button
@@ -254,7 +254,7 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
                         variant="outline"
                         size="sm"
                       >
-                        <Trash className="w-4 h-4" /> Delete
+                        <Trash className="w-4 h-4" /> {t('button.delete')}
                       </Button>
                     </div>
                   </div>
@@ -264,7 +264,7 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
                     {service.description && <p className="text-sm text-gray-600">{service.description}</p>}
                     <div className="flex justify-between mt-2">
                       <p className="font-bold">${service.price.toFixed(2)}</p>
-                      <p className="text-sm text-gray-500">Duration: {service.durationMinutes} minutes</p>
+                      <p className="text-sm text-gray-500">{t('service.duration')}: {service.durationMinutes} {t('service.minutes')}</p>
                     </div>
                   </>
                 )}
@@ -272,7 +272,7 @@ const ServicesCard = ({ salonId, services = [], onSave }: ServicesCardProps) => 
             ))}
           </ul>
         ) : (
-          <p className="text-gray-500">No services available.</p>
+          <p className="text-gray-500">{t('service.noServices')}</p>
         )}
       </CardContent>
     </Card>

@@ -1,14 +1,14 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { fetchClientAppointments, fetchClientReviews, ClientAppointment, Review, submitReview, ReviewRequest } from '@/apiService';
+import { fetchClientAppointments, fetchClientReviews, ClientAppointment, Review, submitReview, ReviewRequest, updateAppointmentStatus, AppointmentStatus, isAppointmentReviewed } from '@/apiService';
 import { toast } from 'react-toastify';
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Star } from "lucide-react";
 import PersonalInfoCard from "./PersonalInfoCard";
+import { useTranslation } from 'react-i18next';
+import AppointmentCardClient from './AppointmentCardClient';
 
 interface ClientInfo {
   id: number;
@@ -23,6 +23,7 @@ interface ClientDashboardProps {
 }
 
 export function ClientDashboard({ user }: ClientDashboardProps) {
+  const { t } = useTranslation();
   const [clientInfo, setClientInfo] = useState<ClientInfo>({
     id: user.id,
     name: user.name,
@@ -48,10 +49,17 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
       try {
         setLoadingAppointments(true);
         const fetchedAppointments = await fetchClientAppointments(user.id);
-        setAppointments(fetchedAppointments);
+        const appointmentsWithReviewStatus = await Promise.all(
+          fetchedAppointments.map(async (appointment) => {
+            const reviewed = await isAppointmentReviewed(appointment.id);
+            return { ...appointment, reviewed };
+          })
+        );
+        setAppointments(appointmentsWithReviewStatus);
+        await updateOutdatedAppointments(appointmentsWithReviewStatus);
       } catch (error) {
         console.error("Error fetching appointments:", error);
-        setError("Failed to load appointments");
+        setError(t('clientDashboard.failedToLoadAppointments'));
       } finally {
         setLoadingAppointments(false);
       }
@@ -62,7 +70,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
         setReviews(fetchedReviews);
       } catch (error) {
         console.error("Error fetching reviews:", error);
-        setError("Failed to load reviews");
+        setError(t('clientDashboard.failedToLoadReviews'));
       } finally {
         setLoadingReviews(false);
       }
@@ -71,6 +79,19 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
     loadData();
   }, [user.id]);
 
+  const updateOutdatedAppointments = async (appointments: ClientAppointment[]) => {
+    const now = new Date();
+    for (const appointment of appointments) {
+      const appointmentDate = new Date(`${appointment.scheduledDate}T${appointment.scheduledTime}`);
+      if (appointmentDate < now && appointment.status !== AppointmentStatus.COMPLETED) {
+        try {
+          await updateAppointmentStatus(appointment.id, AppointmentStatus.COMPLETED);
+        } catch (error) {
+          console.error("Failed to update appointment status:", error);
+        }
+      }
+    }
+  };
 
   const handleOpenReviewModal = (id: number) => {
     setAppointmentId(id);
@@ -98,37 +119,25 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
       };
 
       await submitReview(appointmentId, user.id, reviewRequest);
-      toast.success("Review submitted successfully");
-      handleCloseReviewModal(); // Close the modal after submission
+      toast.success(t('clientDashboard.reviewSubmitted'));
+      handleCloseReviewModal();
+      // Update the reviewed status of the appointment
+      setAppointments((prevAppointments) =>
+        prevAppointments.map((appointment) =>
+          appointment.id === appointmentId ? { ...appointment, reviewed: true } : appointment
+        )
+      );
     } catch (error) {
       console.error("Error submitting review:", error);
-      toast.error("Failed to submit review");
+      toast.error(t('clientDashboard.failedToSubmitReview'));
     }
   };
-
-  const categorizedAppointments = appointments.reduce<{
-    completed: ClientAppointment[];
-    canceled: ClientAppointment[];
-    other: ClientAppointment[];
-  }>(
-    (acc, appointment) => {
-      if (appointment.status === "COMPLETED") {
-        acc.completed.push(appointment);
-      } else if (appointment.status === "CANCELED") {
-        acc.canceled.push(appointment);
-      } else {
-        acc.other.push(appointment);
-      }
-      return acc;
-    },
-    { completed: [], canceled: [], other: [] }
-  );
 
   return (
     <section className="bg-rose-50 min-h-screen p-4 md:p-8 lg:p-12">
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8 dark:bg-rose-200 dark:border-rose-700">
         <h1 className="text-3xl font-bold text-rose-900 mb-8 dark:text-black">
-          Client Dashboard
+          {t('clientDashboard.title')}
         </h1>
 
         <div className="grid gap-8 md:grid-cols-2">
@@ -139,57 +148,44 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
             onSave={() => setEditMode(false)}
             isEmailEditable={false}
           />
+          <AppointmentCardClient
+            title={t('clientDashboard.upcomingAppointments')}
+            appointments={appointments}
+            loading={loadingAppointments}
+            error={error}
+            filterStatuses={['UPCOMING', 'CONFIRMED']}
+            onReview={handleOpenReviewModal}
+          />  
+          <AppointmentCardClient
+            title={t('clientDashboard.completedAppointments')}
+            appointments={appointments}
+            loading={loadingAppointments}
+            error={error}
+            filterStatuses={['COMPLETED']}
+            onReview={handleOpenReviewModal}
+          />
 
-          {/* Completed Appointments */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-4 mb-4 bg-gray-100">
-              <CardTitle className="font-bold">Completed Appointments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {categorizedAppointments.completed.length > 0 ? (
-                <ul className="space-y-4">
-                  {categorizedAppointments.completed.map((appointment) => (
-                    <li key={appointment.id} className="border-b pb-4">
-                      <div className="grid gap-2">
-                        <div className="flex justify-between">
-                          <span className="font-semibold">Date:</span>
-                          <span className="text-gray-500">{appointment.scheduledDate}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-semibold">Service:</span>
-                          <span className="text-gray-500">{appointment.serviceName}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-semibold">Salon:</span>
-                          <span className="text-gray-500">{appointment.salonName}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-semibold">ID:</span>
-                          <span className="text-gray-500">{appointment.id}</span>
-                        </div>
-                        {!appointment.reviewId && (
-                          <Button onClick={() => handleOpenReviewModal(appointment.id)}>
-                            Add Review
-                          </Button>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500">No completed appointments</p>
-              )}
-            </CardContent>
-          </Card>
-          {isReviewModalOpen && (
+          <AppointmentCardClient
+            title={t('clientDashboard.canceledAppointments')}
+            appointments={appointments}
+            loading={loadingAppointments}
+            error={error}
+            filterStatuses={['CANCELLED']}
+            onReview={handleOpenReviewModal}
+          />
+
+        </div>
+      </div>
+
+      {isReviewModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
-            <h2 className="text-xl font-medium mb-4">Submit Your Review</h2>
+            <h2 className="text-xl font-medium mb-4">{t('clientDashboard.submitReview')}</h2>
 
             {/* Review Form */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="rating">Rating</Label>
+                <Label htmlFor="rating">{t('clientDashboard.rating')}</Label>
                 <div className="flex space-x-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
@@ -208,10 +204,10 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
               </div>
 
               <div>
-                <Label htmlFor="review">Review</Label>
+                <Label htmlFor="review">{t('clientDashboard.review')}</Label>
                 <Textarea
                   id="review"
-                  placeholder="Write your review here"
+                  placeholder={t('clientDashboard.writeReview')}
                   value={reviewText}
                   onChange={(e) => setReviewText(e.target.value)}
                   required
@@ -226,92 +222,20 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                   size="sm"
                   onClick={handleCloseReviewModal}
                 >
-                  Cancel
+                  {t('button.cancel')}
                 </Button>
                 <Button
                   className="rounded-xl bg-rose-500 text-white"
                   size="sm"
                   onClick={handleSubmitReview}
                 >
-                  Submit
+                  {t('button.add')}
                 </Button>
               </div>
             </div>
           </div>
         </div>
       )}
-
-          {/* Canceled Appointments */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-4 mb-4 bg-gray-100">
-              <CardTitle className="font-bold">Canceled Appointments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {categorizedAppointments.canceled.length > 0 ? (
-                <ul className="space-y-4">
-                  {categorizedAppointments.canceled.map((appointment) => (
-                    <li key={appointment.id} className="border-b pb-4">
-                      <div className="grid gap-2">
-                        <div className="flex justify-between">
-                          <span className="font-semibold">Date:</span>
-                          <span className="text-gray-500">{appointment.scheduledDate}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-semibold">Service:</span>
-                          <span className="text-gray-500">{appointment.serviceName}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-semibold">Salon:</span>
-                          <span className="text-gray-500">{appointment.salonName}</span>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500">No canceled appointments</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Other Appointments */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-4 mb-4 bg-gray-100">
-              <CardTitle className="font-bold">Other Appointments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {categorizedAppointments.other.length > 0 ? (
-                <ul className="space-y-4">
-                  {categorizedAppointments.other.map((appointment) => (
-                    <li key={appointment.id} className="border-b pb-4">
-                      <div className="grid gap-2">
-                        <div className="flex justify-between">
-                          <span className="font-semibold">Date:</span>
-                          <span className="text-gray-500">{appointment.scheduledDate}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-semibold">Service:</span>
-                          <span className="text-gray-500">{appointment.serviceName}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-semibold">Salon:</span>
-                          <span className="text-gray-500">{appointment.salonName}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-semibold">Status:</span>
-                          <span className="text-gray-500">{appointment.status}</span>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500">No other appointments</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
     </section>
   );
 }

@@ -5,6 +5,8 @@ import { Save, Edit, Plus, Trash, X } from "lucide-react";
 import { DayOfWeek, ScheduleRequest, addEmployeeSchedule, fetchEmployeeSchedule, updateSchedule, deleteSchedule, Schedule, ScheduleType } from "@/apiService";
 import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from 'react-i18next';
+
 
 interface EmployeeScheduleCardProps {
   employeeId: string;
@@ -16,6 +18,7 @@ const EmployeeScheduleCard = ({ employeeId, schedules: schedule, onSave }: Emplo
   const [editedSchedule, setEditedSchedule] = useState<Schedule[]>(schedule);
   const [isEditing, setIsEditing] = useState(false);
   const [newDay, setNewDay] = useState<ScheduleRequest | null>(null);
+  const {t} = useTranslation();
 
   useEffect(() => {
     if (schedule) {
@@ -163,19 +166,19 @@ const EmployeeScheduleCard = ({ employeeId, schedules: schedule, onSave }: Emplo
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 pt-4 bg-gray-100 mb-4 rounded-xl">
-        <CardTitle>Your Schedule</CardTitle>
+        <CardTitle>{t('schedule.yourSchedule')}</CardTitle>
         {isEditing ? (
           <div className="flex gap-2">
             <Button className="border-none bg-white rounded-xl" onClick={handleSave} variant="outline" size="sm">
-              <Save className="w-4 h-4 mr-2" /> Save
+              <Save className="w-4 h-4 mr-2" /> {t('button.save')}
             </Button>
             <Button className="border-none bg-white rounded-xl" onClick={handleCancel} variant="ghost" size="sm">
-              <X className="w-4 h-4 mr-2" /> Cancel
+              <X className="w-4 h-4 mr-2" /> {t('button.cancel')}
             </Button>
           </div>
         ) : (
           <Button className="border-none bg-white rounded-xl" onClick={() => setIsEditing(true)} variant="outline" size="sm">
-            <Edit className="w-4 h-4 mr-2" /> Edit
+            <Edit className="w-4 h-4 mr-2" /> {t('button.edit')}
           </Button>
         )}
       </CardHeader>
@@ -187,13 +190,13 @@ const EmployeeScheduleCard = ({ employeeId, schedules: schedule, onSave }: Emplo
             variant="outline"
             size="sm"
           >
-            <Plus className="w-4 h-4" /> Add Day
+            <Plus className="w-4 h-4" /> {t('button.addDay')}
           </Button>
         )}
 
         {newDay && (
           <div className="border-b pb-4 mb-4 relative">
-            <Label className="font-bold">Day</Label>
+            <Label className="font-bold"> {t('schedule.day')}</Label>
             <select
               className="w-full p-2 border rounded mb-2"
               value={newDay.dayOfWeek}
@@ -205,14 +208,14 @@ const EmployeeScheduleCard = ({ employeeId, schedules: schedule, onSave }: Emplo
                 </option>
               ))}
             </select>
-            <Label className="font-bold">Opening Time</Label>
+            <Label className="font-bold"> {t('schedule.open')}</Label>
             <input
               className="w-full p-2 border rounded mb-2"
               type="time"
               value={newDay.openingTime || ""}
               onChange={(e) => handleNewDayChange("openingTime", e.target.value)}
             />
-            <Label className="font-bold">Closing Time</Label>
+            <Label className="font-bold"> {t('schedule.close')}</Label>
             <input
               className="w-full p-2 border rounded mb-2"
               type="time"
@@ -225,7 +228,7 @@ const EmployeeScheduleCard = ({ employeeId, schedules: schedule, onSave }: Emplo
               variant="outline"
               size="sm"
             >
-              Save Day
+              {t('button.save')}
             </Button>
           </div>
         )}

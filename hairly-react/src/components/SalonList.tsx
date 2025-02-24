@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { SalonCard } from './SalonCard';
 import { SalonHomeCard } from '../components/SalonHomeCard';
-import { fetchSalons, fetchSalonsByCriteria, fetchSalonDetails, Salon } from '../apiService'; // Ensure all imports are correct
+import { fetchSalons, fetchSalonsByCriteria, fetchSalonDetails, Salon } from '../apiService'; 
 
 interface SalonListProps {
   isHome?: boolean;
@@ -19,9 +19,8 @@ const SalonList: React.FC<SalonListProps> = ({ isHome = false, searchQuery }) =>
   const [salons, setSalons] = useState<Salon[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [searchResults, setSearchResults] = useState<Salon[]>([]); // Initialize as empty array
+  const [searchResults, setSearchResults] = useState<Salon[]>([]); 
 
-  // Fetch initial list of salons
   useEffect(() => {
     const loadSalons = async () => {
       try {
@@ -38,7 +37,6 @@ const SalonList: React.FC<SalonListProps> = ({ isHome = false, searchQuery }) =>
     loadSalons();
   }, []);
 
-  // Search for salons based on criteria
   useEffect(() => {
     const searchSalons = async () => {
       if (!searchQuery) return;
@@ -47,9 +45,8 @@ const SalonList: React.FC<SalonListProps> = ({ isHome = false, searchQuery }) =>
         const results = await fetchSalonsByCriteria(searchQuery);
         console.log('Search results:', results);
 
-        // Fetch detailed info for each salon
         const detailedSalons = await Promise.all(
-          results.map((salon: Salon) => fetchSalonDetails(salon.id)) // Ensure correct type here
+          results.map((salon: Salon) => fetchSalonDetails(salon.id)) 
         );
 
         setSearchResults(detailedSalons);
@@ -62,22 +59,19 @@ const SalonList: React.FC<SalonListProps> = ({ isHome = false, searchQuery }) =>
     searchSalons();
   }, [searchQuery]);
 
-  // Loading state
   if (loading) {
     return <div>Loading salons...</div>;
   }
 
-  // Error handling
   if (error) {
     return <div>Error: {error}</div>;
   }
 
-  // Determine which salons to display
-  const salonsToDisplay = isHome ? salons.slice(0, 3) : (searchResults.length > 0 ? searchResults : salons);
+  const salonsToDisplay = isHome ? salons.slice(3, 6) : (searchResults.length > 0 ? searchResults : salons);
 
   return (
     <div className={`container mx-auto py-8 ${isHome ? 'grid grid-cols-1 md:grid-cols-3 gap-4' : ''}`}>
-      {salonsToDisplay.map((salon) => ( // Map over salonsToDisplay
+      {salonsToDisplay.map((salon) => ( 
         isHome ? (
           <SalonHomeCard key={salon.id} salon={salon} /> 
         ) : (

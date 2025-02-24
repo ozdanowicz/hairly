@@ -15,6 +15,8 @@ import {
   doesUserWithEmailExists, 
 } from "@/apiService";
 import {fetchEmployeesBySalon} from "../salonService.ts";
+import { useTranslation } from 'react-i18next';
+
 
 const EmployeesCard: React.FC<{
   salonId: number;
@@ -27,10 +29,12 @@ const EmployeesCard: React.FC<{
   const [newEmployeeEmail, setNewEmployeeEmail] = useState("");
   const [isAddEmployeeModalOpen, setIsAddEmployeeModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const loadEmployees = async () => {
       try {
+        console.log(salonId);
         const employeeList = await fetchEmployeesBySalon(salonId);
         const detailedEmployees = await Promise.all(
           employeeList.map(async (employee) => {
@@ -52,7 +56,7 @@ const EmployeesCard: React.FC<{
   }
   const handleAddEmployee = async () => {
     if (!newEmployeeEmail) {
-      toast.error("Please provide an email.");
+      toast.error(t('toast.error.employeeEmail'));
       return;
     }
 
@@ -60,7 +64,7 @@ const EmployeesCard: React.FC<{
       const fetchedEmployee = await doesUserWithEmailExists(newEmployeeEmail);
       console.log(fetchedEmployee);
       if (!fetchedEmployee) {
-        toast.error("Employee with this email does not exist.");
+        toast.error(t('toast.error.employeeEmailNotFound'));
         return;
       }
 
@@ -76,12 +80,12 @@ const EmployeesCard: React.FC<{
       );
       setEmployees(detailedEmployees);
 
-      toast.success("Employee added successfully!");
+      toast.success(t('toast.employeeAdded'));
       setIsAddEmployeeModalOpen(false);
       setNewEmployeeEmail("");
     } catch (error) {
       console.error("Error adding employee:", error);
-      toast.error("Employee with that email does not exist.");
+      toast.error(t('toast.error.employeeEmailNotFound'));
     }
   };
 
@@ -100,12 +104,12 @@ const EmployeesCard: React.FC<{
             : emp
         )
       );
-      toast.success("Specializations updated successfully!");
+      toast.success(t('toast.specializationSaved'));
       setEditingEmployeeId(null);
       setSelectedSpecializationIds([]);
     } catch (error) {
       console.error("Error assigning specializations:", error);
-      toast.error("Failed to assign specializations.");
+      toast.error(t('toast.error.specializationSave'));
     }
   };
 
@@ -124,10 +128,10 @@ const EmployeesCard: React.FC<{
       setEmployees((prevEmployees) =>
         prevEmployees.filter((employee) => employee.id !== employeeId)
       );
-      toast.success("Employee deleted successfully!");
+      toast.success(t('toast.employeeDeleted'));
     } catch (error) {
       console.error("Error deleting employee:", error);
-      toast.error("Failed to delete employee.");
+      toast.error(t('toast.error.employeeDeleted'));
     } finally {
       setDeleteModalOpen(false);
     }
@@ -138,18 +142,18 @@ const EmployeesCard: React.FC<{
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pt-4 pb-4 mb-3 bg-gray-100 rounded-xl">
         {isOwnerDashboard ? (
           <>
-            <CardTitle>Salon Employees</CardTitle>
+            <CardTitle>{t('employee.title')}</CardTitle>
             <Button
               className="rounded-xl border-none bg-white"
               onClick={() => setIsAddEmployeeModalOpen(true)}
               variant="outline"
               size="sm"
             >
-              <Plus className="w-4 h-4" /> Add
+              <Plus className="w-4 h-4" /> {t('button.add')}
             </Button>
           </>
         ) : (
-          <CardTitle>Our Team</CardTitle>
+          <CardTitle>{t('employee.teamTitle')}</CardTitle>
         )}
       </CardHeader>
       <CardContent>
@@ -164,7 +168,7 @@ const EmployeesCard: React.FC<{
                 <AvatarFallback>{employee.name}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col w-full space-y-1">
-                <p className="font-medium">{employee.name}</p>
+                <p className="font-medium">{employee.name} {employee.surname}</p>
                 <p className="text-sm text-gray-500 mb-4">{employee.email}</p>
                 <div className="flex flex-wrap gap-2">
                   {employee.specializations.map((spec) => (
@@ -194,7 +198,7 @@ const EmployeesCard: React.FC<{
                         onClick={() => handleAssignSpecializations(employee.id)}
                         className="rounded-xl border-none"
                       >
-                        <Save className="w-4 h-4" /> Save
+                        <Save className="w-4 h-4" /> {t('button.save')}
                       </Button>
                       <Button
                         variant="ghost"
@@ -202,7 +206,7 @@ const EmployeesCard: React.FC<{
                         onClick={() => setEditingEmployeeId(null)}
                         className="ml-2 rounded-xl bg-gray-100"
                       >
-                        <X className="w-4 h-4" /> Cancel
+                        <X className="w-4 h-4" /> {t('button.cancel')}
                       </Button>
                     </div>
                   </>
@@ -220,7 +224,7 @@ const EmployeesCard: React.FC<{
                           );
                         }}
                       >
-                        <Edit className="w-4 h-4" /> Edit
+                        <Edit className="w-4 h-4" /> {t('button.edit')}
                       </Button>
                       <Button
                         variant="outline"
@@ -228,7 +232,7 @@ const EmployeesCard: React.FC<{
                         className="rounded-xl border-none shadow bg-rose-700 text-white"
                         onClick={() => handleDeleteEmployee(employee.id)}
                       >
-                        <Trash className="w-4 h-4" /> Delete
+                        <Trash className="w-4 h-4" /> {t('button.delete')}
                       </Button>
                     </div>
                   )
@@ -263,14 +267,14 @@ const EmployeesCard: React.FC<{
         </DialogContent>
       </Dialog> */}
 
-      {/* Modal for adding employee */}
+      
       {isAddEmployeeModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
           <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
-            <h2 className="text-xl font-medium mb-4">Add New Employee</h2>
+            <h2 className="text-xl font-medium mb-4">{t('employee.addNew')}</h2>
             <input
               type="email"
-              placeholder="Employee Email"
+              placeholder={t('employee.email')}
               value={newEmployeeEmail}
               onChange={(e) => setNewEmployeeEmail(e.target.value)}
               className="w-full mb-2 p-2 border border-gray-300 rounded"
@@ -282,7 +286,7 @@ const EmployeesCard: React.FC<{
                 size="sm"
                 onClick={() => setIsAddEmployeeModalOpen(false)} // Close modal
               >
-                Cancel
+                {t('button.cancel')}
               </Button>
               <Button
                 className="rounded-xl border-none shadow"
@@ -290,7 +294,7 @@ const EmployeesCard: React.FC<{
                 size="sm"
                 onClick={handleAddEmployee}
               >
-                Add Employee
+                {t('button.add')}
               </Button>
             </div>
           </div>

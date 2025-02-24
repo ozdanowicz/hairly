@@ -28,7 +28,7 @@ interface AuthContextType {
   token: string | null;
   setToken: (token: string | null) => void;
   removeTokens: () => void;
-  logout: () => void; // Signal for navigation after logout
+  logout: () => void; 
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -71,7 +71,7 @@ export const AuthProvider: React.FC = ({ children }) => {
       if (isTokenExpired()) {
         refreshTokens();
       }
-    }, 5 * 60 * 1000); // Refresh every 5 minutes if the token is expired
+    }, 5 * 60 * 1000); 
 
     return () => clearInterval(interval);
   }, [refreshTokens]);

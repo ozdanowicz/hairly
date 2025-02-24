@@ -1,8 +1,8 @@
 import React from 'react';
-import SalonProfile from "../components/SalonOwnerProfile";
+//import SalonProfile from "./components/SalonOwnerProfile";
 
 const SalonOwnerProfilePage: React.FC = () => {
-  return <SalonProfile />;
+ // return <SalonProfile />;
 };
 
 export default SalonOwnerProfilePage;

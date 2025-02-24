@@ -1,4 +1,3 @@
-// import { useState } from 'react'
 import { Route, createBrowserRouter, createRoutesFromElements, RouterProvider } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import HomePage from './pages/HomePage';
@@ -12,7 +11,6 @@ import SalonRegistrationPage from './pages/SalonRegistrationPage';
 import SalonDetails from './components/SalonDetails';
 import AfterLoginRedirect from '././components/AfterLoginRedirection.tsx';
 import ProfilePage from './pages/ProfilePage.tsx';
-import EmployeeProfile from './components/EmployeeProfile.tsx';
 import OAuthCallback from './components/OAuthCallback.tsx';
 import ReviewFormComponent from './components/ReviewForm.tsx';
 import RegisterSalon from './components/RegisterSalon.tsx';
@@ -25,6 +23,7 @@ import {AuthProvider} from './components/AuthContext.tsx';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
+    <>
     <Route element={<MainLayout />}>
       <Route path="/" element={<HomePage />} />
       <Route path='/offerts' element={<OffertsPage />} />
@@ -37,11 +36,12 @@ const router = createBrowserRouter(
       <Route path="/salon/:id" element={<SalonDetails />} />
       <Route path="/oauth/callback" element={<OAuthCallback />} />
       <Route path='/salon-owner-profile' element={<SalonOwnerProfilePage />} />
-      <Route path='/employee-profile' element={<EmployeeProfile />} />
+      {/* <Route path='/employee-profile' element={<EmployeeProfile />} /> */}
       <Route path='/review-form' element={<ReviewFormComponent />} />
       <Route path='/register-salon' element={<RegisterSalon/>} />
       <Route path='/add-dates' element={<AddFreeDates/>} />
     </Route>
+    </>
   )
 );
 

@@ -1,4 +1,3 @@
-// AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '../tokenService';
 import { useNavigate } from 'react-router-dom';

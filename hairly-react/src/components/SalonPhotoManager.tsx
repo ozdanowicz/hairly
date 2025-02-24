@@ -5,6 +5,7 @@ import { Upload, X } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from 'axios';
 import { convertToBase64 } from '@/apiService';
+import {useTranslation} from 'react-i18next';
 
 
 interface SalonPhoto {
@@ -23,23 +24,27 @@ interface SalonPhotoManagerProps {
 export function SalonPhotoManager({ salonId }: SalonPhotoManagerProps) {
   const [localPhotos, setLocalPhotos] = useState<SalonPhoto[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const {t} = useTranslation();
 
   useEffect(() => {
     if (!salonId) {
-      console.warn("salonId is undefined. Fetching photos will wait until salonId is available.");
-      return; // Skip fetching if salonId is undefined
+      return; 
     }
-
     const fetchPhotos = async () => {
       try {
-        console.log(`Fetching photos for salon with id: ${salonId}`);
-        const response = await axios.get(`http://localhost:8080/api/v1/image/${salonId}/salonImages`);
+        const token = localStorage.getItem('accessToken');
+        const response = await axios.get(`http://localhost:8080/api/v1/image/${salonId}/salonImages`, 
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         
-        // Map the photos
         const photos: SalonPhoto[] = response.data.map((photo: any) => {
           return {
             id: photo.id,
-            salonId: salonId,  // Add salonId to the photo object
+            salonId: salonId, 
             url: convertToBase64(photo.imageData, photo.contentType)
           };
         });
@@ -58,17 +63,13 @@ export function SalonPhotoManager({ salonId }: SalonPhotoManagerProps) {
     const files = event.target.files;
     if (files) {
       try {
-        console.log('Starting photo upload...'); // Debugging line
         const uploadedPhotos = await Promise.all(
           Array.from(files).map(async (file) => {
             const formData = new FormData();
             formData.append("image", file);
-            
-            console.log('Uploading photo:', file.name); // Debugging line
-
-            // Send the file to the server
+            const token = localStorage.getItem('accessToken');
             const response = await axios.post(`http://localhost:8080/api/v1/image/${salonId}`, formData, {
-              headers: { "Content-Type": "multipart/form-data" }
+              headers: { "Content-Type": "multipart/form-data",Authorization: `Bearer ${token}` }
             });
             console.log('Upload successful:', response.data);
             const { id, imageData, contentType } = response.data;
@@ -82,9 +83,6 @@ export function SalonPhotoManager({ salonId }: SalonPhotoManagerProps) {
           })
         );
 
-        console.log('Successfully uploaded photos:', uploadedPhotos); // Debugging line
-
-        // Only update state after the upload is complete
         setLocalPhotos((prevPhotos) => [...prevPhotos, ...uploadedPhotos]);
         //onUpdatePhotos((prevPhotos) => [...prevPhotos, ...uploadedPhotos]);
 
@@ -96,10 +94,16 @@ export function SalonPhotoManager({ salonId }: SalonPhotoManagerProps) {
     }
   };
   const handleRemovePhoto = async (id: number) => {
-    console.log("Attempting to remove photo with id:", id); // Debugging line
 
     try {
-      await axios.delete(`http://localhost:8080/api/v1/image/${id}`);
+      const token = localStorage.getItem('accessToken');
+      await axios.delete(`http://localhost:8080/api/v1/image/${id}`, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       const updatedPhotos = localPhotos.filter(photo => photo.id !== id);
       setLocalPhotos(updatedPhotos);
       //onUpdatePhotos(updatedPhotos);
@@ -113,13 +117,13 @@ export function SalonPhotoManager({ salonId }: SalonPhotoManagerProps) {
   return (
     <Card className="mb-8">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 pt-4 bg-gray-100 mb-4 rounded-xl">
-        <CardTitle>Salon Photos</CardTitle>
+        <CardTitle>{t('salonInfo.salonPhotos')}</CardTitle>
         <div className="flex space-x-2">
           <Button 
             onClick={() => fileInputRef.current?.click()} 
             className="bg-white hover:bg-gray-100 rounded-xl"
           >
-            <Upload className="w-4 h-4" /> Add Photos
+            <Upload className="w-4 h-4" /> {t('button.add')}
           </Button>
         </div>
         
@@ -133,7 +137,6 @@ export function SalonPhotoManager({ salonId }: SalonPhotoManagerProps) {
         />
       </CardHeader>
       <CardContent className="pt-4">
-        {/* Grid View - Always rendered */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {localPhotos?.map((photo, index) => (
             <div key={photo.id} className="relative group">

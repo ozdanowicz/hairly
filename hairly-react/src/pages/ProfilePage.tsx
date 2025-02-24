@@ -1,16 +1,17 @@
-// ProfilePage.tsx
 import React, { useState, useEffect } from 'react';
 import EmployeeDashboard from "../components/EmployeeDashboard";
 import { fetchUserData, User, Role } from '../apiService';
 import ClientDashboard from '../components/ClientDashboard';
 import OwnerDashboard from '../components/OwnerDashboard';
-import { useAuth, saveTokens } from '../tokenService';
+import { useAuth, saveTokens, isTokenExpired, removeTokens } from '../tokenService';
+import { useNavigate } from 'react-router-dom';
 
 const ProfilePage: React.FC = () => {
   const { token, setToken } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -26,8 +27,10 @@ const ProfilePage: React.FC = () => {
 
       const tokenToUse = accessToken || token;
 
-      if (!tokenToUse) {
+      if (!tokenToUse || isTokenExpired()) {
         setError("User is not authenticated.");
+        removeTokens();
+        navigate('/login');
         setLoading(false);
         return;
       }
@@ -37,13 +40,15 @@ const ProfilePage: React.FC = () => {
         setUser(userData);
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Unknown error occurred');
+        removeTokens();
+        navigate('/login');
       } finally {
         setLoading(false);
       }
     };
 
     fetchUser();
-  }, [token, setToken]);
+  }, [token, setToken, navigate]);
 
 
   if (loading) return <div>Loading...</div>;

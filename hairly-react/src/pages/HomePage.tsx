@@ -11,7 +11,7 @@ const HomePage: React.FC = () => {
     <>
       <Hero />
       <About />
-      <SalonOwnerInfo/>
+      {/* <SalonOwnerInfo/> */}
       <SalonList isHome={true} />
       <ViewAllOfferts />
     </>

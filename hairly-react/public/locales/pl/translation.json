@@ -1,0 +1,287 @@
+{
+    "welcome": "Witaj",
+    "selectEmployee": "Wybierz pracownika",
+    "bookAppointmentTitle": "Umów wizytę",
+    "selectService": "Przejrzyj usługi",
+    "chooseService": "Wybierz usługę",
+    "selectEmployeeFirst": "Najpierw wybierz pracownika",
+    "noEmployeesAvailable": "Brak dostępnych pracowników",
+    "chooseEmployee": "Wybierz pracownika",
+    "profileNavbar": "  Profil",
+    "logout": "Wyloguj się",
+    "selectAllFields": "Zaznacz wymagane pola",
+    "mustBeLoggedIn": "Musisz być zalogowany aby umówić wizytę",
+    "mustHaveClientRole": "Musisz mieć rolę klienta aby umówić wizytę",
+    "failedToFetchDates": "Błąd pobierania dostępnych terminów",
+    "failedToLoadEmployees": "Błąd pobierania pracowników",
+    "appointmentBooked": "Umówiono wizytę pomyślnie!",
+    "failedToBookAppointment": "Błąd umawiania wizyty",
+    "howItWorks": "Jak to działa",
+    "find": "Szukaj",
+    "discoverSalons": "Odkrywaj salony fryzjerskie i barber shopy w swojej okolicy dzięki naszej łatwej w użyciu wyszukiwarce.",
+    "book": "Rezerwuj",
+    "chooseTimeService": "Wybierz preferowany czas i usługę, a następnie zarezerwuj wizytę natychmiast.",
+    "enjoy": "Ciesz się",
+    "sitBackRelax": "Usiądź wygodnie, zrelaksuj się i ciesz się profesjonalną pielęgnacją włosów.",
+    "findYourPerfectSalon": "Znajdz swój idealny salon",
+    "discoverBestSalons": "Odkryj najlepsze salony fryzjerskie i  zakłady barberskie w Twojej okolicy.",
+    "search": "Szukaj",
+    "salonName": "Hairly",
+    "heroSubtitle": "Rezerwuj z łatwością, zachwycaj fryzurą",
+    "searchSalonsBar": "Szukaj salonów lub usług...",
+    "loadingSalon": "Ładowanie salonu...",
+    "error.loadingSalonDetails": "Nie udało się załadować szczegółów salonu",
+    "noSalonFound": "Nie znaleziono salonu",
+    "recentRatings": "Ostatnie oceny",
+    "bookAppointment": "Zarezerwuj wizytę",
+    "searchSalon": "Szukaj salonu",
+    "home": "Strona główna",
+    "forBusiness": "Dla firm",
+    "login": "Zaloguj się",
+    "profile": "Twój profil",
+    "signInGoogle": "Zaloguj się z kontem Google",
+    "signIn": "Zaloguj się",
+    "service": {
+        "title": "Usługi",
+        "subtitle": "Usługa",
+        "ourServices": "Nasze usługi",
+        "name": "Nazwa",
+        "description": "Opis",
+        "price": "Cena",
+        "duration": "Czas trwania",
+        "nameEmpty": "Proszę wprowadzić nazwę usługi.",
+        "priceInvalid": "Cena musi być większa od zera.",
+        "addedSuccess": "Usługa {name} została pomyślnie dodana!",
+        "updatedSuccess": "Usługi zostały pomyślnie zaktualizowane!",
+        "saveFailed": "Nie udało się zapisać usług. Proszę spróbować ponownie.",
+        "addFailed": "Nie udało się dodać usługi. Proszę spróbować ponownie.",
+        "noServices": "Brak dostępnych usług.",
+        "minutes": "minut"
+    },
+  "button": {
+    "save": "Zapisz",
+    "edit": "Edytuj",
+    "cancel": "Anuluj",
+    "add": "Dodaj",
+    "addDay": "Dodaj dzień",
+    "delete": "Usuń",
+    "close": "Zamknij",
+    "search": "Szukaj",
+    "seeOnMap": "Zobacz na mapie"
+  },
+
+  "appointment": {
+    "service": "Usługa",
+    "employee": "Pracownik",
+    "client": "Klient",
+    "date": "Data",
+    "time": "Godzina",
+    "duration": "Czas trwania",
+    "price": "Koszt",
+    "status": "Status",
+    "salon": "Salon"
+  },
+
+  "status": {
+    "BOOKED": "Zarezerwowane",
+    "COMPLETED": "Zrealizowane",
+    "CANCELED": "Anulowane",
+    "PENDING": "Oczekujące"
+  },
+  
+
+  "salonCardTitle": "Panel właściciela salonu",
+  "salonInfo": {
+    "title": "Informacje o salonie",
+    "salonName": "Nazwa salonu",
+    "description": "Opis",
+    "noSalonName": "Brak nazwy salonu",
+    "noDescription": "Brak opisu",
+    "priceRange": "Zakres cen",
+    "rating": "Ocena",
+    "noRating": "Brak ocen",
+    "reviews": "Opinie",
+    "salonPhotos": "Zdjęcia salonu"
+  },
+  "registerSalon": {
+    "registerTitle": "Zarejestruj swój salon",
+    "salonNameLabel": "Nazwa salonu",
+    "salonDescriptionLabel": "Opis salonu",
+    "registerButton": "Zarejestruj salon",
+    "error": "Proszę wypełnić zarówno nazwę salonu, jak i opis.",
+    "success": "Salon zarejestrowany pomyślnie!",
+    "fail": "Nie udało się zarejestrować salonu."
+  },
+  "specializations": {
+    "title": "Specjalizacje",
+    "name": "Nazwa specjalizacji",
+    "addSpecialization": "Dodaj",
+    "noServices": "Brak dostępnych usług.",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "close": "Zamknij"
+  },
+  "toast": {
+    "salonSaved": "Salon zapisany pomyślnie!",
+    "salonDeleted": "Salon usunięty pomyślnie!",
+    "salonUpdated": "Salon zaktualizowany pomyślnie!",
+    "specializationSaved": "Specjalizacja zapisana pomyślnie!",
+    "specializationDeleted": "Specjalizacja usunięta pomyślnie!",
+    "serviceUpdated": "Usługi zaktualizowane pomyślnie!",
+    "scheduleAdd": "Harmonogram dodany pomyślnie!",
+    "scheduleSaved": "Harmonogram zapisano pomyślnie!",
+    "scheduleDelete": "Harmonogram usunięty pomyślnie!",
+    "scheduleUpdated": "Harmonogram zaktualizowany pomyślnie!",
+    "locationAdd": "Lokalizacja dodana pomyślnie!",
+    "locationDelete": "Lokalizacja usunięta pomyślnie!",
+    "locationSave": "Lokalizacja zapisana pomyślnie!",
+    "locationUpdate": "Lokalizacja zaktualizowana pomyślnie!",
+    "employeeAdded": "Pracownik dodany pomyślnie!",
+    "employeeSaved": "Pracownik zapisany pomyślnie!",
+    "employeeDeleted": "Pracownik usunięty pomyślnie!",
+    "employeeUpdated": "Pracownik zaktualizowany pomyślnie!",
+    "error": {
+      "scheduleAdd": "Błąd dodawania harmonogramu",
+      "specializationSave": "Nie udało się zapisać specjalizacji.",
+      "locationAdd": "Błąd dodawania lokalizacji.",
+      "locationSave": "Nie udało się zapisać lokalizacji.",
+      "locationDelete": "Nie udało się usunąć lokalizacji.",
+      "locationUpdate": "Nie udało się zaktualizować lokalizacji.",
+      "specializationDelete": "Nie udało się usunąć specjalizacji.",
+      "serviceSave": "Nie udało się zaktualizować usług.",
+      "scheduleSave": "Nie udało się zaktualizować harmonogramu.",
+      "scheduleDelete": "Nie udało się usunąć harmonogramu.",
+      "salonUpdate": "Błąd modyfikowania salonu",
+      "specializationNoName": "Proszę wprowadzić nazwę specializacji",
+      "employeeSave": "Nie udało się zapisać pracownika.",
+      "employeeDelete": "Nie udało się usunąć pracownika.",
+      "employeeUpdate": "Nie udało się zaktualizować pracownika.",
+      "employeeName": "Imię jest wymagane",
+      "employeeSurname": "Nazwisko jest wymagane",
+      "employeeEmail": "Email jest wymagany",
+      "employeePhone": "Telefon jest wymagany",
+      "employeeEmailInvalid": "Niepoprawny adres email",
+      "employeeEmailNotFound": "Nie znaleziono pracownika o podanym adresie email",
+      "employeeAdded": "Nie udało się dodać pracownika"
+    }
+  },
+  "location": {
+        "title": "Lokalizacja Salonu",
+        "city": "Miasto",
+        "street": "Ulica",
+        "searchBar": "Wyszukaj lokalizację",
+        "buildingNumber": "Numer budynku",
+        "noStreet": "Brak ulicy",
+        "noCity": "Brak miasta",
+        "noLocation": "Salon nie ma jeszcze lokalizacji."
+    },
+    "schedule" : {
+        "title": "Harmonogram Pracy Salonu",
+        "yourSchedule": "Twój harmonogram",
+        "day": "Dzień",
+        "open": "Otwarte",
+        "close": "Zamknięte",
+        "noSchedule": "Brak harmonogramu"
+    },
+    "days": {
+    "MONDAY": "Poniedziałek",
+    "TUESDAY": "Wtorek",
+    "WEDNESDAY": "Środa",
+    "THURSDAY": "Czwartek",
+    "FRIDAY": "Piątek",
+    "SATURDAY": "Sobota",
+    "SUNDAY": "Niedziela"
+  },
+
+    "employee": {
+        "title": "Pracownicy Salonu",
+        "teamTitle": "Nasz zespół",
+        "name": "Imię",
+        "surname": "Nazwisko",
+        "email": "Email",
+        "phone": "Telefon",
+        "noEmployees": "Brak pracowników",
+        "addNew": "Dodaj nowego pracownika"
+
+    },
+    "employeeDashboard": {
+    "title": "Panel pracownika",
+    "specializations": "Specjalizacje",
+    "loadingSpecializations": "Ładowanie specjalizacji...",
+    "noServicesAvailable": "Brak dostępnych usług",
+    "upcomingAppointments": "Nadchodzące wizyty",
+    "pastAppointments": "Poprzednie wizyty",
+    "googleCalendar": "Kalendarz Google",
+    "syncGoogleCalendar": "Synchronizuj swój grafik pracy z Kalendarzem Google, aby łatwiej zarządzać i uzyskać dostęp do harmonogramu.",
+    "goToGoogleCalendar": "Przejdź do mojego Kalendarza Google",
+    "failedToLoadAppointments": "Nie udało się załadować wizyt",
+    "failedToLoadSchedules": "Nie udało się załadować harmonogramów",
+    "failedToLoadSalonOrEmployeeData": "Nie udało się załadować danych salonu lub pracownika",
+    "failedToLoadSpecializations": "Nie udało się załadować specjalizacji",
+    "personalInfoUpdated": "Dane osobowe zostały zaktualizowane pomyślnie",
+    "failedToUpdatePersonalInfo": "Nie udało się zaktualizować danych osobowych"
+  },
+  "personalInfo": {
+    "title": "Informacje Personalne"
+    },
+    "clientDashboard": {
+    "title": "Panel klienta",
+    "completedAppointments": "Zrealizowane wizyty",
+    "canceledAppointments": "Anulowane wizyty",
+    "upcomingAppointments": "Nadchodzące wizyty",
+    "noCompletedAppointments": "Brak zrealizowanych wizyt",
+    "noCanceledAppointments": "Brak anulowanych wizyt",
+    "noOtherAppointments": "Brak innych wizyt",
+    "submitReview": "Dodaj swoją opinię",
+    "writeReview": "Napisz opinię...",
+    "rating": "Ocena",
+    "review": "Opinia",
+    "failedToLoadAppointments": "Nie udało się załadować wizyt",
+    "failedToLoadReviews": "Nie udało się załadować opinii",
+    "reviewSubmitted": "Opinia została pomyślnie dodana",
+    "failedToSubmitReview": "Nie udało się dodać opinii"
+  },
+  "review": {
+    "add": "Dodaj opinię",
+    "customer": "Opinie klientów",
+    "noReviews": "Brak opinii",
+    "loading": "Ładowanie opinii..."
+  },
+  "searchBar": {
+    "highestRating": "Najwyżej oceniane",
+    "lowestRating": "Najniższa cena",
+    "mostPopular": "Najpopularniejsze",
+    "leastPopular": "Najmniej popularne",
+    "aToZ": "Od A do Z",
+    "zToA": "Od Z do A",
+    "sort": "Filtruj"
+  },
+  "map": "Mapa",
+    "register": {
+      "title": "Dołącz do Hairly",
+      "description": "Wybierz, jak chcesz korzystać z Hairly",
+      "continue": "Kontynuuj"
+    },
+    "roles": {
+      "client": {
+        "title": "Klient",
+        "description": "Rezerwuj wizyty i odkrywaj salony"
+      },
+      "employee": {
+        "title": "Pracownik Salonu",
+        "description": "Zarządzaj swoimi wizytami i klientami"
+      },
+      "owner": {
+        "title": "Właściciel Salonu",
+        "description": "Dodaj swój salon i rozwijaj swoją firmę"
+      }
+    },
+    "error": {
+      "fetch_user_data": "Błąd pobierania danych użytkownika.",
+      "set_role": "Nie udało się ustawić roli.",
+      "no_role_selected": "Nie wybrano roli lub użytkownik nie został pobrany.",
+      "general": "Wystąpił błąd."
+    },
+    "noUpcomingAppointments": "Brak nadchodzących wizyt",
+    "noAppointments": "Brak wizyt"
+  }

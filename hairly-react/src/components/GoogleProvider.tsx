@@ -1,8 +1,7 @@
-// GoogleMapsLoader.tsx
 import React from 'react';
 import { LoadScript, Library, AdvancedMarkerElement } from '@react-google-maps/api';
 
-const libraries: Library[] = ["places"]; // Static array for libraries
+const libraries: Library[] = ["places"]; 
 
 const GoogleMapsLoader: React.FC = ({ children }) => {
   return (

@@ -4,10 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import backgroundImage from '../assets/back1.png'; // Import the background image
+import { useTranslation } from 'react-i18next';
+import backgroundImage from '../assets/back1.png'; 
 
-const Hero: React.FC<{ title?: string, subtitle?: string }> = ({ title = 'Hairly', subtitle = 'Seamless Booking, Flawless Hair' }) => {
+const Hero: React.FC = () => {
   const comp = useRef(null);
+  const { t } = useTranslation();
+  const title = t('salonName');
+  const subtitle = t('heroSubtitle');
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
@@ -38,10 +42,10 @@ const Hero: React.FC<{ title?: string, subtitle?: string }> = ({ title = 'Hairly
       className="hero-section py-48 relative"
       ref={comp}
       style={{
-        backgroundImage: `url(${backgroundImage})`, // Use the imported image
+        backgroundImage: `url(${backgroundImage})`, 
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        height: '100vh', // Ensure the hero takes full viewport height
+        height: '100vh', t
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
@@ -57,7 +61,7 @@ const Hero: React.FC<{ title?: string, subtitle?: string }> = ({ title = 'Hairly
       <div className="max-w-lg mx-auto flex text-white">
         <Input
           type="text"
-          placeholder="Search for salons or services..."
+          placeholder={t('searchSalonsBar')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-grow text-rose-500 rounded-xl bg-rose-200 bg-opacity-30 border-rose-200 border-opacity-20"
@@ -65,7 +69,7 @@ const Hero: React.FC<{ title?: string, subtitle?: string }> = ({ title = 'Hairly
         <Button className="ml-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl" onClick={handleSearch}>
           
           <Search className="w-4 h-4 mr-2" />
-          Search
+          {t('search')}
         </Button>
       </div>
     </section>

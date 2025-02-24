@@ -2,17 +2,19 @@ import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { MapPin, Save, X, Trash, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Location, createSalonLocation, deleteSalonLocation, fetchLocation } from "@/apiService"; // Assuming this exists
+import { Location, createSalonLocation, deleteSalonLocation, fetchLocation } from "@/apiService";
 import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
 import { StandaloneSearchBox, GoogleMap, Marker } from "@react-google-maps/api";
+import { useTranslation } from 'react-i18next';
 
 interface LocationCardProps {
   salonId: number;
-  isOwner: boolean; // New prop to check if the user is the owner
+  isOwner: boolean; 
 }
 
 const LocationCard: React.FC<LocationCardProps> = ({ salonId, isOwner }) => {
+  const { t } = useTranslation();
   const [isAdding, setIsAdding] = useState(false);
   const [location, setLocation] = useState<Location | null>(null);
   const [newLocation, setNewLocation] = useState<Location | null>(null);
@@ -26,8 +28,8 @@ const LocationCard: React.FC<LocationCardProps> = ({ salonId, isOwner }) => {
         const salonLocation = await fetchLocation(salonId);
         setLocation(salonLocation);
         if (salonLocation) {
-          setMarkerPosition({ lat: salonLocation.latitude, lng: salonLocation.longitude });
-          setMapCenter({ lat: salonLocation.latitude, lng: salonLocation.longitude });
+          setMarkerPosition({ lat: salonLocation.latitude ?? 0, lng: salonLocation.longitude ?? 0 });
+          setMapCenter({ lat: salonLocation.latitude ?? 0, lng: salonLocation.longitude ?? 0 });
         }
       } catch (error) {
         console.error("Error fetching location:", error);
@@ -83,9 +85,9 @@ const LocationCard: React.FC<LocationCardProps> = ({ salonId, isOwner }) => {
   };
 
   const validateLocation = () => {
-    if (!newLocation?.city || newLocation.city.trim() === "") return "City is required";
-    if (!newLocation?.street || newLocation.street.trim() === "") return "Street is required";
-    if (!newLocation?.buildingNumber || newLocation.buildingNumber.trim() === "") return "Building number is required";
+    if (!newLocation?.city || newLocation.city.trim() === "") return t('toast.error.locationCity');
+    if (!newLocation?.street || newLocation.street.trim() === "") return t('toast.error.locationStreet');
+    if (!newLocation?.buildingNumber || newLocation.buildingNumber.trim() === "") return t('toast.error.locationBuildingNumber');
     return null;
   };
 
@@ -98,14 +100,12 @@ const LocationCard: React.FC<LocationCardProps> = ({ salonId, isOwner }) => {
 
     try {
       const savedLocation = await createSalonLocation(salonId, newLocation);
-      toast.success("Location added successfully!");
-
-      // Update location and reset newLocation
+      toast.success(t('toast.locationAdd'));
       setLocation(savedLocation);
       setNewLocation(null);
       setIsAdding(false);
     } catch (error) {
-      toast.error("Failed to add location");
+      toast.error(t('toast.error.locationAdd'));
     }
   };
 
@@ -113,29 +113,27 @@ const LocationCard: React.FC<LocationCardProps> = ({ salonId, isOwner }) => {
     if (location?.id) {
       try {
         await deleteSalonLocation(location.id);
-        toast.success("Location deleted successfully!");
-
-        // Clear location state
+        toast.success(t('toast.locationDelete'));
         setLocation(null);
         setMarkerPosition({ lat: 0, lng: 0 });
         setMapCenter({ lat: 0, lng: 0 });
       } catch (error) {
-        toast.error("Failed to delete location");
+        toast.error(t('toast.error.locationDelete'));
       }
     }
   };
 
   return (
     <Card className="border-0 shadow-lg rounded-xl bg-white">
-      <CardHeader className="flex justify-between items-center p-4 bg-gray-100 rounded-t-xl">
+      <CardHeader className="flex justify-between p-4 bg-gray-100 rounded-t-xl">
         <CardTitle className="flex items-center gap-2">
           <MapPin className="w-6 h-6" />
-          Salon Location
+          {t('location.title')}
         </CardTitle>
 
         {isOwner && !location && !isAdding && (
           <Button onClick={() => setIsAdding(true)} variant="outline" size="sm">
-            <Plus className="w-4 h-4 mr-2" /> Add Location
+            <Plus className="w-4 h-4 mr-2" /> {t('button.add')}
           </Button>
         )}
       </CardHeader>
@@ -143,9 +141,9 @@ const LocationCard: React.FC<LocationCardProps> = ({ salonId, isOwner }) => {
       <CardContent className="space-y-4 p-6">
         {isAdding && isOwner && (
           <div>
-            <Label className="font-semibold">Search for Location</Label>
+            <Label className="font-semibold">{t('search')}</Label>
             <StandaloneSearchBox onLoad={(ref) => setSearchBox(ref)} onPlacesChanged={onPlacesChanged}>
-              <input type="text" placeholder="Search for an address" className="w-full p-2 border rounded-md shadow-sm mb-2" />
+              <input type="text" placeholder={t('location.searchBar')} className="w-full p-2 border rounded-md shadow-sm mb-2" />
             </StandaloneSearchBox>
             <GoogleMap mapContainerStyle={{ height: "300px", width: "100%" }} center={mapCenter} zoom={15}>
               <Marker position={markerPosition} />
@@ -171,8 +169,8 @@ const LocationCard: React.FC<LocationCardProps> = ({ salonId, isOwner }) => {
                 <p>{location.zipCode}, {location.buildingNumber}</p>
               </div>
               {isOwner && (
-                <Button onClick={handleDeleteLocation} variant="outline" color="rose" size="sm">
-                  <Trash className="w-4 h-4 mr-2" /> Delete
+                <Button className="rounded-xl border-non" onClick={handleDeleteLocation} variant="outline" color="rose" size="sm">
+                  <Trash className="w-4 h-4 mr-2" /> {t('button.delete')}
                 </Button>
               )}
             </div>
